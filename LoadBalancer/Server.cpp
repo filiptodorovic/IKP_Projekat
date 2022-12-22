@@ -17,7 +17,7 @@
 #define BUFFER_SIZE 256
 
 // TCP server that use blocking sockets
-int main()
+int main_tcp()
 {
     // Socket used for listening for new clients 
     SOCKET listenSocket = INVALID_SOCKET;
