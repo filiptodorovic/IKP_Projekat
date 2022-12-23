@@ -2,8 +2,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <winnt.h>
-#include <rpcdcep.h>
 #include "conio.h"
 #include <windows.h>
 
