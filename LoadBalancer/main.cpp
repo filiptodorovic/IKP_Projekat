@@ -13,7 +13,7 @@ DWORD WINAPI consumer(LPVOID param) {
 	queue* q = (queue*)param;
 	while (true) {
 		char buffer[10];
-		Sleep(10000);
+		Sleep(500);
 		dequeue(q,buffer);
 	}
 }

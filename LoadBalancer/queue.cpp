@@ -5,6 +5,7 @@
 HANDLE hSemaporeQueueEmpty;
 HANDLE hSemaporeQueueFull;
 
+
 queue* create_queue(int capacity) {
 	queue* newQueue = (queue*)malloc(sizeof(queue));
 	newQueue->front = 0;
@@ -37,9 +38,9 @@ int current_size(queue* q) {
 }
 
 void enqueue(queue* q, char* message) {
-	if (is_full(q)) {
-		int res = WaitForSingleObject(hSemaporeQueueEmpty, INFINITE);
-		printf("\n%d\n",res);
+	while (is_full(q)) {
+		if (WaitForSingleObject(hSemaporeQueueEmpty, INFINITE) == WAIT_OBJECT_0 + 1)
+			break;
 	}
 	{
 		EnterCriticalSection(&q->cs);
@@ -94,21 +95,16 @@ void delete_queue(queue* q) {
 
 void print_queue(queue *q) {
 	printf("\n QUEUE: ");
-	int from,to;
-
-	if (q->front > q->rear) {
-		from = q->rear;
-		to = q->front;
-	}
-	else {
-		from = q->front;
-		to = q->rear;
-	}
-	if (q->currentSize == 0)
-		return;
-	for (int i = from; i <= to; (i++)%q->capacity) {
+	
+	for (int i = q->front; i != q->rear;) {
+		if (i == q->capacity)
+			i = i % q->capacity;
 		printf(" %s ", q->messageArray[i]);
+		if (i == q->rear)break;
+		++i;
 	}
+	//printf(" %s ", q->messageArray[q->rear]);
+
 
 	printf("\n");
 }
