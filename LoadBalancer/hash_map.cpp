@@ -44,8 +44,14 @@ bool init_hash_table() {
 bool insert_client(client_thread* ct) {
 	if (ct == NULL) return false;
 	int index = hash(ct->clientName);
-	ct->next = hash_table_clt[index];
-	hash_table_clt[index] = ct;
+	if (hash_table_clt[index] == NULL) {
+		hash_table_clt[index] = ct;
+		hash_table_clt[index]->next = NULL;
+	}
+	else {
+		ct->next = hash_table_clt[index];
+		hash_table_clt[index] = ct;
+	}
 	if (hash_table_clt[index] == NULL)
 		return false;
 	return true;

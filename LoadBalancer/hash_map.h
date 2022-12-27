@@ -1,6 +1,6 @@
 #include <windows.h>
-#define MAX_ELEM 20
-#define CLIENT_NAME_LEN 11
+#define MAX_ELEM 5
+#define CLIENT_NAME_LEN 10
 
 typedef struct client_thread{
 	HANDLE clientThread; // handle to the thread

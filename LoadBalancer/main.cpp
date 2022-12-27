@@ -29,13 +29,17 @@
 
 static int client_count=0;
 
-
+client_thread* cli_threads[50];
 
 
 DWORD WINAPI read_write_thread(LPVOID param) {
     SOCKET acceptedSocket = (SOCKET)param;
     char dataBuffer[BUFFER_SIZE];
     int client_num = client_count++;
+
+
+    //check if we got data from client or EXIT signal
+    //OR if we got a message from worker
     do
     {
         // Receive data until the client shuts down the connection
@@ -78,6 +82,18 @@ DWORD WINAPI read_write_thread(LPVOID param) {
 // TCP server that use blocking sockets
 int main_tcp()
 {
+    return 0;
+}
+
+void test_ht();
+void test_hashing();
+void test_dynamic_enqueue_dequeue();
+DWORD WINAPI producer(LPVOID param);
+DWORD WINAPI consumer(LPVOID param);
+
+
+DWORD WINAPI listenerClient(LPVOID param) {
+
     // Socket used for listening for new clients 
     SOCKET listenSocket = INVALID_SOCKET;
 
@@ -89,6 +105,7 @@ int main_tcp()
 
     // Buffer used for storing incoming data
     char dataBuffer[BUFFER_SIZE];
+    char clientName[CLIENT_NAME_LEN];
 
     // WSADATA data structure that is to receive details of the Windows Sockets implementation
     WSADATA wsaData;
@@ -145,7 +162,7 @@ int main_tcp()
     }
 
     printf("Server socket is set to listening mode. Waiting for new connection requests.\n");
-
+    
     do
     {
         // Struct for information about connected client
@@ -167,14 +184,22 @@ int main_tcp()
 
         printf("\nNew client request accepted. Client address: %s : %d\n", inet_ntoa(clientAddr.sin_addr), ntohs(clientAddr.sin_port));
 
-        HANDLE hProducer;
-        HANDLE hConsumer;
-        DWORD ProducerID;
-        DWORD ConsumerID;
+        //create a new thread for a new client connected
+        HANDLE hClient;
+        DWORD ClientID;
+        hClient = CreateThread(NULL, 0, &read_write_thread, (LPVOID)acceptedSocket, 0, &ClientID);
 
-        hProducer = CreateThread(NULL, 0, &read_write_thread, (LPVOID)acceptedSocket, 0, &ProducerID);
+        //add it to the hash table
+        client_thread* newCli = (client_thread*)malloc(sizeof(client_thread*));
+        sprintf(clientName,"Client%d", client_count);
+        strcpy(newCli->clientName, clientName);
+        newCli->clientThread = hClient;
+        newCli->finished = false;
 
-        // Here is where server shutdown loguc could be placed
+        //cli_threads[client_count] = newCli;
+        insert_client(newCli);
+        print_table();
+
 
     } while (true);
 
@@ -200,14 +225,19 @@ int main_tcp()
     return 0;
 }
 
-void test_ht();
-void test_hashing();
-void test_dynamic_enqueue_dequeue();
-DWORD WINAPI producer(LPVOID param);
-DWORD WINAPI consumer(LPVOID param);
-
 int main() {
-	main_tcp();
+
+    // Create a listener client thread which handles incoming connections
+    HANDLE hListenerClient;
+    DWORD listenerClientID;
+    init_hash_table();
+    hListenerClient = CreateThread(NULL, 0, &listenerClient, (LPVOID)0, 0, &listenerClientID);
+
+
+
+    //wait for listener to finish
+    if (hListenerClient)
+        WaitForSingleObject(hListenerClient, INFINITE);
 	return 0;
 }
 
