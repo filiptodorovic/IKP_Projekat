@@ -8,6 +8,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "conio.h"
+#include "hash_map.h"
+#include "queue.h"
+
 
 #pragma comment (lib, "Ws2_32.lib")
 #pragma comment (lib, "Mswsock.lib")
@@ -17,28 +20,11 @@
 #define BUFFER_SIZE 256
 
 
-//#include "queue.h"
 //#include "hash_map.h"
-//#pragma warning(disable:4996)
+#pragma warning(disable:4996)
 
 /*
-DWORD WINAPI producer(LPVOID param) {
-	queue* q = (queue*)param;
-	char data_a[10] = "ABC";
-	while (true) {
-		enqueue(q, data_a);
-		Sleep(300);
-	}
-}
 
-DWORD WINAPI consumer(LPVOID param) {
-	queue* q = (queue*)param;
-	while (true) {
-		char buffer[10];
-		Sleep(500);
-		dequeue(q,buffer);
-	}
-}
 */
 
 static int client_count=0;
@@ -214,141 +200,88 @@ int main_tcp()
     return 0;
 }
 
-
+void test_ht();
+void test_hashing();
+void test_dynamic_enqueue_dequeue();
+DWORD WINAPI producer(LPVOID param);
+DWORD WINAPI consumer(LPVOID param);
 
 int main() {
-
 	main_tcp();
-
-
-
-
-
-	/*char str[6];
-	strcpy(str, "CL10");
-	printf("ABC10 => %d\n", hash(str));
-	strcpy(str, "ABC11");
-	printf("ABC11 => %d\n", hash(str));
-	strcpy(str, "GF12");
-	printf("ABC12 => %d\n", hash(str));
-	strcpy(str, "GSDA");
-	printf("ABC13 => %d\n", hash(str));
-	strcpy(str, "GDASG");
-	printf("ABC14 => %d\n", hash(str));*/
-	
-	
-	
-	/*
-	queue* q = create_queue(7);
-
-	HANDLE hProducer;
-	HANDLE hConsumer;
-	DWORD ProducerID;
-	DWORD ConsumerID;
-	
-	hProducer = CreateThread(NULL, 0, &producer, (LPVOID)q, 0, &ProducerID);
-	hConsumer = CreateThread(NULL, 0, &consumer, (LPVOID)q, 0, &ConsumerID);
-
-
-	if (hConsumer)
-		WaitForSingleObject(hConsumer, INFINITE);
-	if (hProducer)
-		WaitForSingleObject(hProducer, INFINITE);
-	*/
-
-
-
-	/*
-	char data_a[10] = "ABC";
-	char data_b[10] = "BCD";
-	char data_c[10] = "EFG";
-	char data_d[10] = "KLM";
-
-	
-
-	enqueue(q,data_a);
-	enqueue(q,data_b);
-	enqueue(q,data_c);
-	enqueue(q,data_d);
-
-	print_queue(q);
-
-
-	printf("%s -> dequeued from queue\n\n", dequeue(q));
-	printf("%s -> dequeued from queue\n\n", dequeue(q));
-	printf("%s -> dequeued from queue\n\n", dequeue(q));
-
-	print_queue(q);
-
-	printf("%s -> dequeued from queue\n\n", dequeue(q));
-
-	print_queue(q);
-
-	enqueue(q, data_b);
-	enqueue(q, data_c);
-	enqueue(q, data_d);
-	enqueue(q, data_b);
-	enqueue(q, data_c);
-	enqueue(q, data_d);
-	enqueue(q, data_d);
-
-	print_queue(q);
-
-
-	printf("%s -> dequeued from queue\n\n", dequeue(q));
-	printf("%s -> dequeued from queue\n\n", dequeue(q));
-
-
-	print_queue(q);
-	*/
 	return 0;
 }
 
-//#include <stdio.h> 
-//#include <conio.h> 
-//#include <windows.h> 
-//
-//#pragma warning(disable:4996)
-//HANDLE hSemaphore;
-//int counter;
-///* Telo niti. */
-//DWORD WINAPI ThreadProc(LPVOID lpParam)
-//{
-//	while (true)
-//	{
-//		/* Cekaj na signal da je pritisnut taster. */
-//		WaitForSingleObject(hSemaphore, INFINITE);
-//		/* Povecaj brojac i ispisi vrednost. */
-//		counter++;
-//		printf("\r counter = %d", counter);
-//	}
-//}
-//void main(void)
-//{
-//	DWORD threadID;
-//	HANDLE hThread;
-//
-//	/* Inicijalizacija sistema. */
-//	hSemaphore = CreateSemaphore(0, 0, 1, NULL);
-//	hThread = CreateThread(NULL, 0, &ThreadProc, NULL, 0,
-//		&threadID);
-//	/* Glavna petlja programa, zavrsava se pritiskom na q. */
-//	while (true)
-//	{
-//		/* Da li je pritisnut taster? */
-//		if (kbhit()) {
-//			/* Ukoliko jeste, preuzmi ga. Ako je preuzeti znak q,
-//			zavrsi program. */
-//			if (getch() == 'q') break;
-//			/* Obavesti nit da je pritisnu taster. */
-//			ReleaseSemaphore(hSemaphore, 1, NULL);
-//		}
-//		/* Pauza, da procesor ne bi konstantno bio zauzet
-//		ispitivanjem da li je pritisnut taster. */
-//		Sleep(100);
-//	}
-//
-//	/* Oslobadjanje zauzetig resursa. */
-//	CloseHandle(hThread);
-//	CloseHandle(hSemaphore);
-//}
+void test_ht() {
+    client_thread cl1, cl2, cl3, cl4, cl5, cl6, cl7, cl8, cl9, cl10;
+    strcpy(cl1.clientName, "Client1");
+    strcpy(cl2.clientName, "Client2");
+    strcpy(cl3.clientName, "Client3");
+    strcpy(cl4.clientName, "Client4");
+    strcpy(cl5.clientName, "Client5");
+    strcpy(cl6.clientName, "Client6");
+    strcpy(cl7.clientName, "Client7");
+    strcpy(cl8.clientName, "Client8");
+    strcpy(cl9.clientName, "Client9");
+    strcpy(cl10.clientName, "Client10");
+
+    init_hash_table();
+
+    insert_client(&cl1);
+    insert_client(&cl2);
+    insert_client(&cl3);
+    insert_client(&cl4);
+    insert_client(&cl5);
+    insert_client(&cl6);
+    insert_client(&cl7);
+    insert_client(&cl8);
+    insert_client(&cl9);
+    insert_client(&cl10);
+
+    print_table();
+}
+void test_hashing() {
+    char str[6];
+    strcpy(str, "CL10");
+    printf("ABC10 => %d\n", hash(str));
+    strcpy(str, "ABC11");
+    printf("ABC11 => %d\n", hash(str));
+    strcpy(str, "GF12");
+    printf("ABC12 => %d\n", hash(str));
+    strcpy(str, "GSDA");
+    printf("ABC13 => %d\n", hash(str));
+    strcpy(str, "GDASG");
+    printf("ABC14 => %d\n", hash(str));
+}
+DWORD WINAPI producer(LPVOID param) {
+    queue* q = (queue*)param;
+    char data_a[10] = "ABC";
+    while (true) {
+        enqueue(q, data_a);
+        Sleep(300);
+    }
+}
+DWORD WINAPI consumer(LPVOID param) {
+    queue* q = (queue*)param;
+    while (true) {
+        char buffer[10];
+        Sleep(500);
+        dequeue(q, buffer);
+    }
+}
+void test_dynamic_enqueue_dequeue(){
+    queue* q = create_queue(7);
+
+    HANDLE hProducer;
+    HANDLE hConsumer;
+    DWORD ProducerID;
+    DWORD ConsumerID;
+
+    hProducer = CreateThread(NULL, 0, &producer, (LPVOID)q, 0, &ProducerID);
+    hConsumer = CreateThread(NULL, 0, &consumer, (LPVOID)q, 0, &ConsumerID);
+
+
+    if (hConsumer)
+        WaitForSingleObject(hConsumer, INFINITE);
+    if (hProducer)
+        WaitForSingleObject(hProducer, INFINITE);
+}
