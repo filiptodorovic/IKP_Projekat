@@ -190,7 +190,7 @@ DWORD WINAPI listenerClient(LPVOID param) {
         hClient = CreateThread(NULL, 0, &read_write_thread, (LPVOID)acceptedSocket, 0, &ClientID);
 
         //add it to the hash table
-        client_thread* newCli = (client_thread*)malloc(sizeof(client_thread*));
+        client_thread* newCli = (client_thread*)malloc(sizeof(client_thread));
         sprintf(clientName,"Client%d", client_count);
         strcpy(newCli->clientName, clientName);
         newCli->clientThread = hClient;
