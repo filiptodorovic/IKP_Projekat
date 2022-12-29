@@ -1,5 +1,8 @@
 #include "list.h"
 
+struct node* head = NULL;
+struct node* current = NULL;
+struct node* tail = NULL;
 
 void printList() {
 	struct node* ptr = head;

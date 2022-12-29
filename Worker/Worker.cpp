@@ -14,12 +14,11 @@
 #pragma comment (lib, "AdvApi32.lib")
 
 #define SERVER_IP_ADDRESS "127.0.0.1"
-#define SERVER_PORT 5059
+#define SERVER_PORT_W 5060
 #define BUFFER_SIZE 256
 
-// TCP client that use blocking sockets
-int main()
-{
+int main() {
+
     // Socket used to communicate with server
     SOCKET connectSocket = INVALID_SOCKET;
 
@@ -55,7 +54,7 @@ int main()
     sockaddr_in serverAddress;
     serverAddress.sin_family = AF_INET;								// IPv4 protocol
     serverAddress.sin_addr.s_addr = inet_addr(SERVER_IP_ADDRESS);	// ip address of server
-    serverAddress.sin_port = htons(SERVER_PORT);					// server port
+    serverAddress.sin_port = htons(SERVER_PORT_W);					// server port
 
     // Connect to server specified in serverAddress and socket connectSocket
     if (connect(connectSocket, (SOCKADDR*)&serverAddress, sizeof(serverAddress)) == SOCKET_ERROR)
@@ -65,50 +64,39 @@ int main()
         WSACleanup();
         return 1;
     }
+
     while (true) {
-        // Read string from user into outgoing buffer
-        printf("Enter message to send: ");
-        gets_s(dataBuffer, BUFFER_SIZE);
+        iResult = recv(connectSocket, dataBuffer, BUFFER_SIZE, 0);
 
-        // Send message to server using connected socket
-        iResult = send(connectSocket, dataBuffer, (int)strlen(dataBuffer), 0);
-        if (strcmp(dataBuffer, "exit") == 0)
-            break;
-
-        // Check result of send function
-        if (iResult == SOCKET_ERROR)
+        if (iResult > 0)	// Check if message is successfully received
         {
-            printf("send failed with error: %d\n", WSAGetLastError());
-            closesocket(connectSocket);
-            WSACleanup();
-            return 1;
+            dataBuffer[iResult] = '\0';
+
+            if (strcmp(dataBuffer, "exit") == 0) {
+                // Connection was closed successfully
+                printf("Connection with LB closed.\n");
+                closesocket(connectSocket);
+                break;
+            }
+
+            // Log message text
+            printf("LB sent: %s.\n", dataBuffer);
+
         }
+        else if (iResult == 0)	// Check if shutdown command is received
+        {
+            printf("Connection with client closed.\n");
+            closesocket(connectSocket);
+            break;
+        }
+        else	// There was an error during recv
+        {
+
+            printf("recv failed with error: %d\n", WSAGetLastError());
+            closesocket(connectSocket);
+            break;
+        }
+
     }
 
-    printf("Message successfully sent. Total bytes: %ld\n", iResult);
-
-    // Shutdown the connection since we're done
-    iResult = shutdown(connectSocket, SD_BOTH);
-
-    // Check if connection is succesfully shut down.
-    if (iResult == SOCKET_ERROR)
-    {
-        printf("Shutdown failed with error: %d\n", WSAGetLastError());
-        closesocket(connectSocket);
-        WSACleanup();
-        return 1;
-    }
-
-    // For demonstration purpose
-    printf("\nPress any key to exit: ");
-    _getch();
-
-
-    // Close connected socket
-    closesocket(connectSocket);
-
-    // Deinitialize WSA library
-    WSACleanup();
-
-    return 0;
 }

@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{323055d1-cc80-4289-894f-f045bd945afe}</ProjectGuid>
-    <RootNamespace>LoadBalancer</RootNamespace>
+    <ProjectGuid>{34e6cc28-b189-42c9-882a-bc5b1ffce4d0}</ProjectGuid>
+    <RootNamespace>Worker</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -88,7 +88,6 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\Filip\Desktop\IKP_Projekat\Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -140,19 +139,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="hash_map.cpp" />
-    <ClCompile Include="list.cpp" />
-    <ClCompile Include="ClientCommunication.cpp" />
-    <ClCompile Include="queue.cpp" />
-    <ClCompile Include="Server.cpp" />
-    <ClCompile Include="WorkerCommunication.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="hash_map.h" />
-    <ClInclude Include="list.h" />
-    <ClInclude Include="queue.h" />
-    <ClInclude Include="Server.h" />
-    <ClInclude Include="WorkerCommunication.h" />
+    <ClCompile Include="Worker.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -11,9 +11,7 @@ struct node {
 	struct node* next;
 };
 
-struct node* head = NULL;
-struct node* current = NULL;
-struct node* tail = NULL;
+
 
 void printList();
 struct node* deleteFirst();
