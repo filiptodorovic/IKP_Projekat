@@ -14,7 +14,7 @@
 #pragma comment (lib, "AdvApi32.lib")
 
 #define SERVER_IP_ADDRESS "127.0.0.1"
-#define SERVER_PORT 27016
+#define SERVER_PORT 5059
 #define BUFFER_SIZE 256
 
 // TCP client that use blocking sockets
@@ -65,21 +65,24 @@ int main()
         WSACleanup();
         return 1;
     }
+    while (true) {
+        // Read string from user into outgoing buffer
+        printf("Enter message to send: ");
+        gets_s(dataBuffer, BUFFER_SIZE);
 
-    // Read string from user into outgoing buffer
-    printf("Enter message to send: ");
-    gets_s(dataBuffer, BUFFER_SIZE);
+        // Send message to server using connected socket
+        iResult = send(connectSocket, dataBuffer, (int)strlen(dataBuffer), 0);
+        if (strcmp(dataBuffer,"exit")==0)
+            break;
 
-    // Send message to server using connected socket
-    iResult = send(connectSocket, dataBuffer, (int)strlen(dataBuffer), 0);
-
-    // Check result of send function
-    if (iResult == SOCKET_ERROR)
-    {
-        printf("send failed with error: %d\n", WSAGetLastError());
-        closesocket(connectSocket);
-        WSACleanup();
-        return 1;
+        // Check result of send function
+        if (iResult == SOCKET_ERROR)
+        {
+            printf("send failed with error: %d\n", WSAGetLastError());
+            closesocket(connectSocket);
+            WSACleanup();
+            return 1;
+        }
     }
 
     printf("Message successfully sent. Total bytes: %ld\n", iResult);

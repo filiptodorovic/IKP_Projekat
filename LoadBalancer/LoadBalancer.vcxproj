@@ -140,13 +140,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="hash_map.cpp" />
     <ClCompile Include="list.cpp" />
     <ClCompile Include="ClientCommunication.cpp" />
-    <ClCompile Include="Server.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="queue.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="hash_map.h" />
     <ClInclude Include="list.h" />
-    <ClInclude Include="Server.h" />
+    <ClInclude Include="queue.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
