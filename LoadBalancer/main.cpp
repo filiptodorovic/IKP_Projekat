@@ -19,18 +19,9 @@
 #define SERVER_PORT 5059
 #define BUFFER_SIZE 256
 
-
-//#include "hash_map.h"
 #pragma warning(disable:4996)
 
-/*
-
-*/
-
 static int client_count=0;
-
-client_thread* cli_threads[50];
-
 
 DWORD WINAPI read_write_thread(LPVOID param) {
     SOCKET acceptedSocket = (SOCKET)param;
@@ -196,9 +187,9 @@ DWORD WINAPI listenerClient(LPVOID param) {
         newCli->clientThread = hClient;
         newCli->finished = false;
 
-        //cli_threads[client_count] = newCli;
+        
         insert_client(newCli);
-        print_table();
+        //print_table();
 
 
     } while (true);

@@ -64,12 +64,6 @@ client_thread* lookup_client(char* name) {
 	while (tmp != NULL && strcmp(tmp->clientName, name) != 0)
 		tmp = tmp->next;
 	return tmp;
-
-	/*if (hash_table_clt[index] != NULL &&
-		strcmp(name, hash_table_clt[index]->clientName) == 0)
-		return hash_table_clt[index];
-	else
-		return NULL;*/
 }
 
 client_thread* delete_client(char* name) {
@@ -88,17 +82,6 @@ client_thread* delete_client(char* name) {
 		prev->next = tmp->next;
 	}
 	return tmp;
-	
-	
-	//if (hash_table_clt[index] != NULL &&
-	//	strcmp(name, hash_table_clt[index]->clientName) == 0) {
-	//	client_thread* cli = hash_table_clt[index];
-	//	hash_table_clt[index] = NULL;
-	//	return cli; //the caller will free the memory
-	//}
-	//else {
-	//	return NULL;
-	//}
 }
 
 
