@@ -5,23 +5,19 @@
 #include "conio.h"
 #include <windows.h>
 
-struct node {
+struct list {
 	HANDLE data;
 	int key;
-	struct node* next;
+	struct list* next;
 };
 
-struct node* head = NULL;
-struct node* current = NULL;
-struct node* tail = NULL;
-
-void printList();
-struct node* deleteFirst();
-void insertFirst(int key, HANDLE data);
-void insertLast(int key, HANDLE data);
+void printList(struct list* ptr);   //pointer on head
+struct list* deleteFirst();
+struct list* insertFirst(int key, HANDLE data);
+struct list* insertLast(int key, HANDLE data);
 bool isEmpty();
-struct node* find(int key);
-struct node* deleteElem(int key);
+struct list* find(int key);
+struct list* deleteElem(int key);
 
 
-#pragma once
+

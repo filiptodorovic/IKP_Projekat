@@ -1,13 +1,19 @@
 #include "list.h"
+#define  _CRT_SECURE_NO_WARNINGS
+#pragma warning(disable:4996)
 
+struct list* head = NULL;
+struct list* current = NULL;
+struct list* tail = NULL;
+CRITICAL_SECTION cs;
 
-void printList() {
-	struct node* ptr = head;
+void printList(struct list* ptr) {
+	//struct list* ptr = head;
 	printf("\n[ ");
 
 	//start from the beginning
 	while (ptr != NULL) {
-		printf("(%d,%d) ", ptr->key, ptr->data);
+		printf("(thread %d) ", ptr->key);
 		ptr = ptr->next;
 	}
 
@@ -15,23 +21,33 @@ void printList() {
 }
 
 //insert link at the first location
-void insertFirst(int key, HANDLE data) {
-	//create a link
-	struct node* link = (struct node*)malloc(sizeof(struct node));
+struct list* insertFirst(int key, HANDLE data) {
 
-	link->key = key;
-	link->data = data;
+
+	struct list* link = (struct list*)malloc(sizeof(struct list));
+
+	//create a link
+	//EnterCriticalSection(&cs);
+
+	link -> key = key;
+	link -> data = data;
 
 	//point it to old first node
-	link->next = head;
+	link -> next = head;
 
 	//point first to new first node
 	head = link;
+
+	//LeaveCriticalSection(&cs);
+
+	return head;
 }
 
-void insertLast(int key, HANDLE data) {
+struct list* insertLast(int key, HANDLE data) {
 
-	struct node* link = (struct node*)malloc(sizeof(struct node));
+	struct list* link = (struct list*)malloc(sizeof(struct list));
+
+	EnterCriticalSection(&cs);
 
 	link->key = key;
 	link->data = data;
@@ -40,16 +56,24 @@ void insertLast(int key, HANDLE data) {
 
 	tail = link;
 
+	LeaveCriticalSection(&cs);
+
+	return tail;
+
 }
 
 //delete first item
-struct node* deleteFirst() {
+struct list* deleteFirst() {
 
 	//save reference to first link
-	struct node* tempLink = head;
+	struct list* tempLink = head;
+
+	EnterCriticalSection(&cs);
 
 	//mark next to first link as first 
 	head = head->next;
+
+	LeaveCriticalSection(&cs);
 
 	//return the deleted link
 	return tempLink;
@@ -62,7 +86,7 @@ bool isEmpty() {
 
 int length() {
 	int length = 0;
-	struct node* current;
+	struct list* current;
 
 	for (current = head; current != NULL; current = current->next) {
 		length++;
@@ -72,10 +96,10 @@ int length() {
 }
 
 //find a link with given key
-struct node* find(int key) {
+struct list* find(int key) {
 
 	//start from the first link
-	struct node* current = head;
+	struct list* current = head;
 
 	//if list is empty
 	if (head == NULL) {
@@ -100,11 +124,13 @@ struct node* find(int key) {
 }
 
 //delete a link with given key
-struct node* deleteElem(int key) {
+struct list* deleteElem(int key) {
 
 	//start from the first link
-	struct node* current = head;
-	struct node* previous = NULL;
+	struct list* current = head;
+	struct list* previous = NULL;
+
+	EnterCriticalSection(&cs);
 
 	//if list is empty
 	if (head == NULL) {
@@ -135,6 +161,9 @@ struct node* deleteElem(int key) {
 		//bypass the current link
 		previous->next = current->next;
 	}
+
+
+	LeaveCriticalSection(&cs);
 
 	return current;
 }

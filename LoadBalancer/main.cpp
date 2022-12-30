@@ -1,5 +1,4 @@
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
-
 #define WIN32_LEAN_AND_MEAN
 
 #include <windows.h>
@@ -10,6 +9,8 @@
 #include "conio.h"
 #include "hash_map.h"
 #include "queue.h"
+#include "ClientCommunication.h"
+#include "list.h"
 
 
 #pragma comment (lib, "Ws2_32.lib")
@@ -23,6 +24,7 @@
 
 static int client_count=0;
 
+/*
 DWORD WINAPI read_write_thread(LPVOID param) {
     SOCKET acceptedSocket = (SOCKET)param;
     char dataBuffer[BUFFER_SIZE];
@@ -67,7 +69,7 @@ DWORD WINAPI read_write_thread(LPVOID param) {
 
     } while (true);
 }
-
+*/
 
 
 // TCP server that use blocking sockets
@@ -79,10 +81,11 @@ int main_tcp()
 void test_ht();
 void test_hashing();
 void test_dynamic_enqueue_dequeue();
+void test_list();
 DWORD WINAPI producer(LPVOID param);
 DWORD WINAPI consumer(LPVOID param);
 
-
+/*
 DWORD WINAPI listenerClient(LPVOID param) {
 
     // Socket used for listening for new clients 
@@ -215,8 +218,12 @@ DWORD WINAPI listenerClient(LPVOID param) {
 
     return 0;
 }
+*/
+
 
 int main() {
+
+    test_list();
 
     // Create a listener client thread which handles incoming connections
     HANDLE hListenerClient;
@@ -229,7 +236,44 @@ int main() {
     //wait for listener to finish
     if (hListenerClient)
         WaitForSingleObject(hListenerClient, INFINITE);
+
+
+    
+
 	return 0;
+}
+
+DWORD WINAPI test(LPVOID param) {
+
+    printf("created thread for lists");
+    return 0;
+
+}
+
+void test_list() {
+
+    HANDLE hSlobodni1, hSlobodni2, hSlobodni3, hZauzeti1, hZauzeti2, hZauzeti3;
+    DWORD hSlobodni1ID, hSlobodni2ID, hSlobodni3ID, hZauzeti1ID, hZauzeti2ID, hZauzeti3ID;
+
+    hSlobodni1 = CreateThread(NULL, 0, &test, NULL, 0, &hSlobodni1ID);
+    hSlobodni2 = CreateThread(NULL, 0, &test, NULL, 0, &hSlobodni2ID);
+    hSlobodni3 = CreateThread(NULL, 0, &test, NULL, 0, &hSlobodni3ID);
+
+    hZauzeti1 = CreateThread(NULL, 0, &test, NULL, 0, &hZauzeti1ID);
+    hZauzeti2 = CreateThread(NULL, 0, &test, NULL, 0, &hZauzeti2ID);
+    hZauzeti3 = CreateThread(NULL, 0, &test, NULL, 0, &hZauzeti3ID);
+
+    struct list* listaSlobodni = insertFirst(1, hSlobodni1);
+    struct list* drugiSlobodni = insertLast(2, hSlobodni2);
+    struct list* treciSlobodni = insertLast(3, hSlobodni3);
+    
+    struct list* listaZauzeti = insertFirst(11, hZauzeti1);
+    struct list* drugiZauzeti = insertLast(12, hZauzeti2);
+    struct list* treciZauzeti = insertLast(13, hZauzeti3);
+
+    printList(listaSlobodni);
+    printList(listaZauzeti);
+
 }
 
 void test_ht() {
