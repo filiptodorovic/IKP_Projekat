@@ -1,12 +1,98 @@
-#include "list.h"
 #define  _CRT_SECURE_NO_WARNINGS
 #pragma warning(disable:4996)
+#include "list.h"
 
-struct list* head = NULL;
-struct list* current = NULL;
-struct list* tail = NULL;
-CRITICAL_SECTION cs;
+node_t* head = NULL;
+node_t* tail = NULL;
 
+void createList(node_t** head, node_t** tail) {
+	*head = NULL;
+	*tail = NULL;
+}
+
+void insertFirstNode(HANDLE data, node_t** head, node_t** tail) {
+
+	node_t* new_node = (node_t*)malloc(sizeof(node_t));
+	new_node->thread_handle = data;
+	new_node->next = *head;
+
+	// If the list is empty, set the tail to the new node
+	if (*tail == NULL) {
+		*tail = new_node;
+	}
+
+	// Set the head to the new node
+	*head = new_node;
+
+}
+
+void insertLastNode(HANDLE data, node_t** head, node_t** tail) {
+	node_t* new_node = (node_t *)malloc(sizeof(node_t));
+
+	new_node->thread_handle = data;
+	new_node->next = NULL;
+
+	// If the list is empty, set the head and tail to the new node
+	if (*head == NULL) {
+		*head = new_node;
+		*tail = new_node;
+	}
+	else {
+		// Otherwise, add the new node to the end of the list
+		(*tail)->next = new_node;
+		*tail = new_node;
+	}
+
+}
+
+void deleteNode(HANDLE data, node_t** head, node_t** tail) {
+	node_t* current = *head;
+	node_t* previous = NULL;
+
+	// Search for the node to delete
+	while (current != NULL && current->thread_handle != data) {
+		previous = current;
+		current = current->next;
+	}
+
+
+	// If the node was found, delete it
+	if (current != NULL) {
+		// If the node to delete is the head of the list, update the head pointer
+		if (current == *head) {
+			*head = current->next;
+		}
+		// If the node to delete is the tail of the list, update the tail pointer
+		if (current == *tail) {
+			*tail = previous;
+		}
+		// Update the next pointer of the previous node to skip the deleted node
+		if (previous != NULL) {
+			previous->next = current->next;
+		}
+		// Free the memory used by the node
+		free(current);
+	}
+	else {
+		printf("Node is not in list.");
+	}
+
+
+}
+
+void print_list(node_t* head) {
+	node_t* current = head;
+	while (current != NULL) {
+
+		WCHAR* thread_name = NULL;
+		GetThreadDescription(current->thread_handle, &thread_name);
+		printf("Thread name: %ls\n", thread_name);
+		current = current->next;
+	}
+	printf("\n");
+}
+
+/*
 void printList(struct list* ptr) {
 	//struct list* ptr = head;
 	printf("\n[ ");
@@ -167,3 +253,5 @@ struct list* deleteElem(int key) {
 
 	return current;
 }
+
+*/

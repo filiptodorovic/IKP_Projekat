@@ -24,54 +24,6 @@
 
 static int client_count=0;
 
-/*
-DWORD WINAPI read_write_thread(LPVOID param) {
-    SOCKET acceptedSocket = (SOCKET)param;
-    char dataBuffer[BUFFER_SIZE];
-    int client_num = client_count++;
-
-
-    //check if we got data from client or EXIT signal
-    //OR if we got a message from worker
-    do
-    {
-        // Receive data until the client shuts down the connection
-        int iResult = recv(acceptedSocket, dataBuffer, BUFFER_SIZE, 0);
-
-        if (iResult > 0)	// Check if message is successfully received
-        {
-            dataBuffer[iResult] = '\0';
-
-            if (strcmp(dataBuffer, "exit") == 0) {
-                // Connection was closed successfully
-                printf("Connection with client %d closed.\n",client_num);
-                closesocket(acceptedSocket);
-                break;
-            }
-
-            // Log message text
-            printf("Client %d sent: %s.\n",client_num, dataBuffer);
-
-        }
-        else if (iResult == 0)	// Check if shutdown command is received
-        {
-            printf("Connection with client closed.\n");
-            closesocket(acceptedSocket);
-            break;
-        }
-        else	// There was an error during recv
-        {
-
-            printf("recv failed with error: %d\n", WSAGetLastError());
-            closesocket(acceptedSocket);
-            break;
-        }
-
-    } while (true);
-}
-*/
-
-
 // TCP server that use blocking sockets
 int main_tcp()
 {
@@ -85,145 +37,10 @@ void test_list();
 DWORD WINAPI producer(LPVOID param);
 DWORD WINAPI consumer(LPVOID param);
 
-/*
-DWORD WINAPI listenerClient(LPVOID param) {
-
-    // Socket used for listening for new clients 
-    SOCKET listenSocket = INVALID_SOCKET;
-
-    // Socket used for communication with client
-    SOCKET acceptedSocket = INVALID_SOCKET;
-
-    // Variable used to store function return value
-    int iResult;
-
-    // Buffer used for storing incoming data
-    char dataBuffer[BUFFER_SIZE];
-    char clientName[CLIENT_NAME_LEN];
-
-    // WSADATA data structure that is to receive details of the Windows Sockets implementation
-    WSADATA wsaData;
-
-    // Initialize windows sockets library for this process
-    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
-    {
-        printf("WSAStartup failed with error: %d\n", WSAGetLastError());
-        return 1;
-    }
-
-
-    // Initialize serverAddress structure used by bind
-    sockaddr_in serverAddress;
-    memset((char*)&serverAddress, 0, sizeof(serverAddress));
-    serverAddress.sin_family = AF_INET;				// IPv4 address family
-    serverAddress.sin_addr.s_addr = INADDR_ANY;		// Use all available addresses
-    serverAddress.sin_port = htons(SERVER_PORT);	// Use specific port
-
-
-    // Create a SOCKET for connecting to server
-    listenSocket = socket(AF_INET,      // IPv4 address family
-        SOCK_STREAM,  // Stream socket
-        IPPROTO_TCP); // TCP protocol
-
-// Check if socket is successfully created
-    if (listenSocket == INVALID_SOCKET)
-    {
-        printf("socket failed with error: %ld\n", WSAGetLastError());
-        WSACleanup();
-        return 1;
-    }
-
-    // Setup the TCP listening socket - bind port number and local address to socket
-    iResult = bind(listenSocket, (struct sockaddr*)&serverAddress, sizeof(serverAddress));
-
-    // Check if socket is successfully binded to address and port from sockaddr_in structure
-    if (iResult == SOCKET_ERROR)
-    {
-        printf("bind failed with error: %d\n", WSAGetLastError());
-        closesocket(listenSocket);
-        WSACleanup();
-        return 1;
-    }
-
-    // Set listenSocket in listening mode
-    iResult = listen(listenSocket, SOMAXCONN);
-    if (iResult == SOCKET_ERROR)
-    {
-        printf("listen failed with error: %d\n", WSAGetLastError());
-        closesocket(listenSocket);
-        WSACleanup();
-        return 1;
-    }
-
-    printf("Server socket is set to listening mode. Waiting for new connection requests.\n");
-    
-    do
-    {
-        // Struct for information about connected client
-        sockaddr_in clientAddr;
-
-        int clientAddrSize = sizeof(struct sockaddr_in);
-
-        // Accept new connections from clients 
-        acceptedSocket = accept(listenSocket, (struct sockaddr*)&clientAddr, &clientAddrSize);
-
-        // Check if accepted socket is valid 
-        if (acceptedSocket == INVALID_SOCKET)
-        {
-            printf("accept failed with error: %d\n", WSAGetLastError());
-            closesocket(listenSocket);
-            WSACleanup();
-            return 1;
-        }
-
-        printf("\nNew client request accepted. Client address: %s : %d\n", inet_ntoa(clientAddr.sin_addr), ntohs(clientAddr.sin_port));
-
-        //create a new thread for a new client connected
-        HANDLE hClient;
-        DWORD ClientID;
-        hClient = CreateThread(NULL, 0, &read_write_thread, (LPVOID)acceptedSocket, 0, &ClientID);
-
-        //add it to the hash table
-        client_thread* newCli = (client_thread*)malloc(sizeof(client_thread));
-        sprintf(clientName,"Client%d", client_count);
-        strcpy(newCli->clientName, clientName);
-        newCli->clientThread = hClient;
-        newCli->finished = false;
-
-        
-        insert_client(newCli);
-        //print_table();
-
-
-    } while (true);
-
-    // Shutdown the connection since we're done
-    iResult = shutdown(acceptedSocket, SD_BOTH);
-
-    // Check if connection is succesfully shut down.
-    if (iResult == SOCKET_ERROR)
-    {
-        printf("shutdown failed with error: %d\n", WSAGetLastError());
-        closesocket(acceptedSocket);
-        WSACleanup();
-        return 1;
-    }
-
-    //Close listen and accepted sockets
-    closesocket(listenSocket);
-    closesocket(acceptedSocket);
-
-    // Deinitialize WSA library
-    WSACleanup();
-
-    return 0;
-}
-*/
-
 
 int main() {
 
-    test_list();
+    //test_list();
 
     // Create a listener client thread which handles incoming connections
     HANDLE hListenerClient;
@@ -232,20 +49,17 @@ int main() {
     hListenerClient = CreateThread(NULL, 0, &listenerClient, (LPVOID)0, 0, &listenerClientID);
 
 
-
     //wait for listener to finish
     if (hListenerClient)
         WaitForSingleObject(hListenerClient, INFINITE);
 
-
-    
 
 	return 0;
 }
 
 DWORD WINAPI test(LPVOID param) {
 
-    printf("created thread for lists");
+    //printf("created thread for lists");
     return 0;
 
 }
@@ -258,21 +72,52 @@ void test_list() {
     hSlobodni1 = CreateThread(NULL, 0, &test, NULL, 0, &hSlobodni1ID);
     hSlobodni2 = CreateThread(NULL, 0, &test, NULL, 0, &hSlobodni2ID);
     hSlobodni3 = CreateThread(NULL, 0, &test, NULL, 0, &hSlobodni3ID);
+    SetThreadDescription(hSlobodni1, L"Slobodni Thread 1");
+    SetThreadDescription(hSlobodni2, L"Slobodni Thread 2");
+    SetThreadDescription(hSlobodni3, L"Slobodni Thread 3");
 
     hZauzeti1 = CreateThread(NULL, 0, &test, NULL, 0, &hZauzeti1ID);
     hZauzeti2 = CreateThread(NULL, 0, &test, NULL, 0, &hZauzeti2ID);
     hZauzeti3 = CreateThread(NULL, 0, &test, NULL, 0, &hZauzeti3ID);
+    SetThreadDescription(hZauzeti1, L"Zauzeti Thread 1");
+    SetThreadDescription(hZauzeti2, L"Zauzeti Thread 2");
+    SetThreadDescription(hZauzeti3, L"Zauzeti Thread 3");
 
-    struct list* listaSlobodni = insertFirst(1, hSlobodni1);
-    struct list* drugiSlobodni = insertLast(2, hSlobodni2);
-    struct list* treciSlobodni = insertLast(3, hSlobodni3);
+    node_t* listSlobodni_head = NULL;
+    node_t* listSlobodni_tail = NULL;
+
+    node_t* listZauzeti_head = NULL;
+    node_t* listZauzeti_tail = NULL;
+
+    createList(&listSlobodni_head, &listSlobodni_tail);
+    createList(&listZauzeti_head, &listZauzeti_tail);
     
-    struct list* listaZauzeti = insertFirst(11, hZauzeti1);
-    struct list* drugiZauzeti = insertLast(12, hZauzeti2);
-    struct list* treciZauzeti = insertLast(13, hZauzeti3);
+    insertLastNode(hSlobodni1, &listSlobodni_head, &listSlobodni_tail);
+    insertLastNode(hSlobodni2, &listSlobodni_head, &listSlobodni_tail);
+    insertFirstNode(hSlobodni3, &listSlobodni_head, &listSlobodni_tail);
 
-    printList(listaSlobodni);
-    printList(listaZauzeti);
+
+    insertLastNode(hZauzeti1, &listZauzeti_head, &listZauzeti_tail);
+    insertLastNode(hZauzeti2, &listZauzeti_head, &listZauzeti_tail);
+    insertLastNode(hZauzeti3, &listZauzeti_head, &listZauzeti_tail);
+
+    printf("\nLista slobodnih: ");
+    print_list(listSlobodni_head);
+    deleteNode(hSlobodni2, &listSlobodni_head, &listSlobodni_tail);
+    
+    printf("\nLista slobodnih nakon brisanja: ");
+    print_list(listSlobodni_head);
+
+    deleteNode(hSlobodni1, &listSlobodni_head, &listSlobodni_tail);
+    printf("\nLista slobodnih nakon brisanja: ");
+    print_list(listSlobodni_head);
+
+    deleteNode(hSlobodni3, &listSlobodni_head, &listSlobodni_tail);
+    deleteNode(hSlobodni1, &listSlobodni_head, &listSlobodni_tail);
+
+    printf("\nLista zauzetih: ");
+    print_list(listZauzeti_head);
+
 
 }
 
