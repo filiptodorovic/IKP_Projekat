@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <windows.h>
 #include <WinSock2.h>
-#include "ClientCommunication.h"
+#include "client_communication.h"
 #include "queue.h"
 #include "hash_map.h"
 #include "conio.h"
@@ -20,9 +20,8 @@
 #define CLIENT_NAME_LEN 5 
 #define SERVER_PORT 5059
 
-
-
 static int client_count = 0;
+static queue* q = NULL;
 
 DWORD WINAPI read_write_thread(LPVOID param) {
     SOCKET acceptedSocket = (SOCKET)param;
@@ -32,7 +31,6 @@ DWORD WINAPI read_write_thread(LPVOID param) {
 
     char dataBuffer[BUFFER_SIZE];
     int client_num = client_count++;
-
 
     //check if we got data from client or EXIT signal
     //OR if we got a message from worker
@@ -54,6 +52,7 @@ DWORD WINAPI read_write_thread(LPVOID param) {
 
             // Log message text
             printf("Client %d sent: %s.\n", client_num, dataBuffer);
+            enqueue(q,dataBuffer);
 
         }
         else if (iResult == 0)	// Check if shutdown command is received
@@ -85,7 +84,7 @@ DWORD WINAPI read_write_thread(LPVOID param) {
 
 
 DWORD WINAPI listenerClient(LPVOID param) {
-
+    q = (queue*)param;
     // Socket used for listening for new clients 
     SOCKET listenSocket = INVALID_SOCKET;
 
@@ -188,7 +187,6 @@ DWORD WINAPI listenerClient(LPVOID param) {
         newCli->clientThread = hClient;
         newCli->finished = false;
 
-
         insert_client(newCli);
         //print_table();
 
@@ -215,53 +213,4 @@ DWORD WINAPI listenerClient(LPVOID param) {
     WSACleanup();
 
     return 0;
-}
-
-
-
-DWORD WINAPI clientFunc(LPVOID lpParam) {
-
-	int iResult;
-	char dataBuffer[BUFFER_SIZE];
-
-	SOCKET listenSocket = *(SOCKET*)lpParam;
-
-	SOCKET acceptedSocket = accept(listenSocket, NULL, NULL);
-
-	if (acceptedSocket == INVALID_SOCKET)
-	{
-		printf("accept failed with error: %d\n", WSAGetLastError());
-		closesocket(listenSocket);
-		WSACleanup();
-		return 1;
-	}
-	
-	do {
-		iResult = recv(acceptedSocket, dataBuffer, BUFFER_SIZE, 0);
-
-		if (iResult > 0)	// Check if message is successfully received
-		{
-			dataBuffer[iResult] = '\0';
-
-			// Log message text
-			printf("Client sent: %s.\n", dataBuffer);
-
-		}
-		else if (iResult == 0)	// Check if shutdown command is received
-		{
-			// Connection was closed successfully
-			printf("Connection with client closed.\n");
-			closesocket(acceptedSocket);
-		}
-		else	// There was an error during recv
-		{
-
-			printf("recv failed with error: %d\n", WSAGetLastError());
-			closesocket(acceptedSocket);
-		}
-
-	} while (dataBuffer !=  "terminate");
-
-
-	return 0;
 }

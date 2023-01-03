@@ -10,9 +10,11 @@ typedef struct client_thread {
 }client_thread;
 
 extern client_thread* hash_table_clt[MAX_ELEM];
+extern CRITICAL_SECTION hashTableCS;
 unsigned int hash(char* name);
 bool init_hash_table();
 bool insert_client(client_thread* ct);
 client_thread* lookup_client(char* name);
 client_thread* delete_client(char* name);
 void print_table();
+void delete_hashtable();

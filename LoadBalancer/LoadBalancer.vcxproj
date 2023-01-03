@@ -142,13 +142,13 @@
   <ItemGroup>
     <ClCompile Include="hash_map.cpp" />
     <ClCompile Include="list.cpp" />
-    <ClCompile Include="ClientCommunication.cpp" />
+    <ClCompile Include="client_communication.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="queue.cpp" />
     <ClCompile Include="testing.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ClientCommunication.h" />
+    <ClInclude Include="client_communication.h" />
     <ClInclude Include="hash_map.h" />
     <ClInclude Include="list.h" />
     <ClInclude Include="queue.h" />

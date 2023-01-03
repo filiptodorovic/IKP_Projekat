@@ -19,3 +19,4 @@ void dequeue(queue* q,char* message);
 void print_queue(queue* q);
 int get_current_size(queue* q);
 int get_capacity(queue* q);
+void delete_queue(queue* q);

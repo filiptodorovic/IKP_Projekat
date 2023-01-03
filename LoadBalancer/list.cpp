@@ -1,17 +1,21 @@
 #define  _CRT_SECURE_NO_WARNINGS
 #pragma warning(disable:4996)
 #include "list.h"
-#pragma warning(disable:4996)
 
-void initList(list* l) {
-	l->head = NULL;
-	l->tail = NULL;
-	InitializeCriticalSection(&l->cs);
+void init_list(list** l) {
+	*l = (list*)malloc(sizeof(list));
+	(*l)->head = NULL;
+	(*l)->current = NULL;
+	(*l)->tail = NULL;
+	InitializeCriticalSection(&(*l)->cs);
 }
 
-void printList() {
-	struct node* ptr = head;
-	printf("\n[ ");
+void insert_first_node(HANDLE data, list* l) {
+	EnterCriticalSection(&l->cs);
+
+	node* new_node = (node*)malloc(sizeof(node));
+	new_node->thread_handle = data;
+	new_node->next = l->head;
 
 	// If the list is empty, set the tail to the new node
 	if (l->tail == NULL) {
@@ -23,7 +27,7 @@ void printList() {
 	LeaveCriticalSection(&l->cs);
 }
 
-void insertLastNode(HANDLE data, list *l) {
+void insert_last_node(HANDLE data, list *l) {
 	EnterCriticalSection(&l->cs);
 	node* new_node = (node*)malloc(sizeof(node));
 
@@ -43,7 +47,7 @@ void insertLastNode(HANDLE data, list *l) {
 	LeaveCriticalSection(&l->cs);
 }
 
-void deleteNode(HANDLE data, list *l) {
+void delete_node(HANDLE data, list *l) {
 	EnterCriticalSection(&l->cs);
 	node* current = l->head;
 	node* previous = NULL;
@@ -80,12 +84,12 @@ void deleteNode(HANDLE data, list *l) {
 
 void print_list(list* l) {
 	EnterCriticalSection(&l->cs);
+	printf("LIST: \n");
 	node* current = l->head;
 	while (current != NULL) {
-
 		WCHAR* thread_name = NULL;
 		GetThreadDescription(current->thread_handle, &thread_name);
-		printf("Thread name: %ls\n", thread_name);
+		printf("[%ls]->", thread_name);
 		current = current->next;
 	}
 	printf("\n");

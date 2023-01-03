@@ -16,8 +16,9 @@ typedef struct {
 	CRITICAL_SECTION cs;
 }list;
 
-void initList(list* l);
-void insertFirstNode(HANDLE data, list* l);
-void insertLastNode(HANDLE data, list* l);
-void deleteNode(HANDLE data, list* l);
+void init_list(list** l);
+void insert_first_node(HANDLE data, list* l);
+void insert_last_node(HANDLE data, list* l);
+void delete_node(HANDLE data, list* l);
 void print_list(list *l);
+void delete_list(list* l);

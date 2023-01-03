@@ -1,8 +1,67 @@
 #include "testing.h"
 #include "queue.h"
 #include "hash_map.h"
+#include "list.h"
 #pragma warning(disable:4996)
 
+DWORD WINAPI test(LPVOID param) {
+
+    //printf("created thread for lists");
+    return 0;
+
+}
+
+void test_list() {
+
+    HANDLE hSlobodni1, hSlobodni2, hSlobodni3, hZauzeti1, hZauzeti2, hZauzeti3;
+    DWORD hSlobodni1ID, hSlobodni2ID, hSlobodni3ID, hZauzeti1ID, hZauzeti2ID, hZauzeti3ID;
+
+    hSlobodni1 = CreateThread(NULL, 0, &test, NULL, 0, &hSlobodni1ID);
+    hSlobodni2 = CreateThread(NULL, 0, &test, NULL, 0, &hSlobodni2ID);
+    hSlobodni3 = CreateThread(NULL, 0, &test, NULL, 0, &hSlobodni3ID);
+    SetThreadDescription(hSlobodni1, L"Slobodni Thread 1");
+    SetThreadDescription(hSlobodni2, L"Slobodni Thread 2");
+    SetThreadDescription(hSlobodni3, L"Slobodni Thread 3");
+
+    hZauzeti1 = CreateThread(NULL, 0, &test, NULL, 0, &hZauzeti1ID);
+    hZauzeti2 = CreateThread(NULL, 0, &test, NULL, 0, &hZauzeti2ID);
+    hZauzeti3 = CreateThread(NULL, 0, &test, NULL, 0, &hZauzeti3ID);
+    SetThreadDescription(hZauzeti1, L"Zauzeti Thread 1");
+    SetThreadDescription(hZauzeti2, L"Zauzeti Thread 2");
+    SetThreadDescription(hZauzeti3, L"Zauzeti Thread 3");
+
+    list* listSlobodni = NULL;
+    list* listZauzeti = NULL;
+
+    init_list(&listSlobodni);
+    init_list(&listZauzeti);
+
+    insert_last_node(hSlobodni1, listSlobodni);
+    insert_last_node(hSlobodni2, listSlobodni);
+    insert_first_node(hSlobodni3, listSlobodni);
+
+
+    insert_last_node(hZauzeti1, listZauzeti);
+    insert_last_node(hZauzeti2, listZauzeti);
+    insert_last_node(hZauzeti3, listZauzeti);
+
+    printf("\nLista slobodnih: ");
+    print_list(listZauzeti);
+    delete_node(hSlobodni2, listSlobodni);
+
+    printf("\nLista slobodnih nakon brisanja: ");
+    print_list(listSlobodni);
+
+    delete_node(hSlobodni1, listSlobodni);
+    printf("\nLista slobodnih nakon brisanja: ");
+    print_list(listSlobodni);
+
+    delete_node(hSlobodni3, listSlobodni);
+    delete_node(hSlobodni1, listSlobodni);
+
+    printf("\nLista zauzetih: ");
+    print_list(listZauzeti);
+}
 
 void test_ht() {
     client_thread cl1, cl2, cl3, cl4, cl5, cl6, cl7, cl8, cl9, cl10;
