@@ -2,7 +2,7 @@
 #define MAX_ELEM 5
 #define CLIENT_NAME_LEN 10
 
-typedef struct client_thread{
+typedef struct client_thread {
 	HANDLE clientThread; // handle to the thread
 	char clientName[CLIENT_NAME_LEN]; //We will have maximum of 1000 clients
 	bool finished = false;

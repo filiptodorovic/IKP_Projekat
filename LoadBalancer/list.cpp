@@ -1,3 +1,5 @@
+#define  _CRT_SECURE_NO_WARNINGS
+#pragma warning(disable:4996)
 #include "list.h"
 #pragma warning(disable:4996)
 
@@ -7,11 +9,9 @@ void initList(list* l) {
 	InitializeCriticalSection(&l->cs);
 }
 
-void insertFirstNode(HANDLE data, list *l) {
-	EnterCriticalSection(&l->cs);
-	node* new_node = (node*)malloc(sizeof(node));
-	new_node->thread_handle = data;
-	new_node->next = l->head;
+void printList() {
+	struct node* ptr = head;
+	printf("\n[ ");
 
 	// If the list is empty, set the tail to the new node
 	if (l->tail == NULL) {

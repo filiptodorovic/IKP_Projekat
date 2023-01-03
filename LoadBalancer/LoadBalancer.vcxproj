@@ -148,6 +148,7 @@
     <ClCompile Include="testing.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ClientCommunication.h" />
     <ClInclude Include="hash_map.h" />
     <ClInclude Include="list.h" />
     <ClInclude Include="queue.h" />

@@ -65,9 +65,13 @@ int main()
         WSACleanup();
         return 1;
     }
+
+    u_long non_blocking = 1;
+    ioctlsocket(connectSocket, FIONBIO, &non_blocking);
+
     while (true) {
         // Read string from user into outgoing buffer
-        printf("Enter message to send: ");
+        printf("Enter message to send. Enter 'exit' if you want to close connection. ");
         gets_s(dataBuffer, BUFFER_SIZE);
 
         // Send message to server using connected socket
@@ -83,9 +87,34 @@ int main()
             WSACleanup();
             return 1;
         }
+
+        printf("Message successfully sent. Total bytes: %ld\n", iResult);
+        
+        iResult = recv(connectSocket, dataBuffer, (int)strlen(dataBuffer), 0);
+        if (iResult > 0)	// Check if message is successfully received
+        {
+            dataBuffer[iResult] = '\0';
+
+            // Log message text
+            printf("LOAD BALANCER sent: %s.\n", dataBuffer);
+
+        }
+        else if (iResult == -1) {
+
+            continue;
+        }
+        else	// There was an error during recv
+        {
+
+            printf("recv failed with error: %d\n", WSAGetLastError());
+            //closesocket(acceptedSocket);
+            break;
+        }
+        
+        
     }
 
-    printf("Message successfully sent. Total bytes: %ld\n", iResult);
+    
 
     // Shutdown the connection since we're done
     iResult = shutdown(connectSocket, SD_BOTH);
