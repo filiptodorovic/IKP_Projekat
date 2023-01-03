@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <windows.h>
 #include <WinSock2.h>
-#include "client_communication.h"
+#include "worker_communication.h"
 #include "queue.h"
 #include "hash_map.h"
 
@@ -17,19 +17,18 @@
 
 #define BUFFER_SIZE 256
 #define CLIENT_NAME_LEN 5 
-#define SERVER_PORT 5059
+#define SERVER_PORT 6069
 
-static int client_count = 0;
-static queue* q = NULL;
+static int worker_count = 0;
 
-DWORD WINAPI client_read_write(LPVOID param) {
+DWORD WINAPI worker_read_write(LPVOID param) {
     SOCKET acceptedSocket = (SOCKET)param;
 
     //u_long non_blocking = 1;
     //ioctlsocket(acceptedSocket, FIONBIO, &non_blocking);
 
     char dataBuffer[BUFFER_SIZE];
-    int client_num = client_count++;
+    int worker_num = worker_count++;
 
     //check if we got data from client or EXIT signal
     //OR if we got a message from worker
@@ -44,14 +43,13 @@ DWORD WINAPI client_read_write(LPVOID param) {
 
             if (strcmp(dataBuffer, "exit") == 0) {
                 // Connection was closed successfully
-                printf("Connection with client %d closed.\n", client_num);
+                printf("Connection with worker %d closed.\n", worker_num);
                 closesocket(acceptedSocket);
                 break;
             }
 
             // Log message text
-            printf("Client %d sent: %s.\n", client_num, dataBuffer);
-            enqueue(q,dataBuffer);
+            printf("Worker %d sent: %s.\n", worker_num, dataBuffer);
 
         }
         else if (iResult == 0)	// Check if shutdown command is received
@@ -82,8 +80,7 @@ DWORD WINAPI client_read_write(LPVOID param) {
 }
 
 
-DWORD WINAPI listener_client(LPVOID param) {
-    q = (queue*)param;
+DWORD WINAPI worker_listener(LPVOID param) {
     // Socket used for listening for new clients 
     SOCKET listenSocket = INVALID_SOCKET;
 
@@ -175,20 +172,8 @@ DWORD WINAPI listener_client(LPVOID param) {
         printf("\nNew client request accepted. Client address: %s : %d\n", inet_ntoa(clientAddr.sin_addr), ntohs(clientAddr.sin_port));
 
         //create a new thread for a new client connected
-        HANDLE hClient;
-        DWORD ClientID;
-        hClient = CreateThread(NULL, 0, &client_read_write, (LPVOID)acceptedSocket, 0, &ClientID);
-
-        //add it to the hash table
-        client_thread* newCli = (client_thread*)malloc(sizeof(client_thread));
-        sprintf(clientName, "Client%d", client_count);
-        strcpy(newCli->clientName, clientName);
-        newCli->clientThread = hClient;
-        newCli->finished = false;
-
-        insert_client(newCli);
-        //print_table();
-
+        
+        //Put accepted socket/thread in the FREE LIST
 
     } while (true);
 

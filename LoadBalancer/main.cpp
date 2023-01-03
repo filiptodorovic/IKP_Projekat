@@ -47,7 +47,7 @@ int main() {
 
 
     hPercentage = CreateThread(NULL, 0, &checkPercentage, (LPVOID)0, 0, &percentageID);
-    hListenerClient = CreateThread(NULL, 0, &listenerClient, (LPVOID)q, 0, &listenerClientID);
+    hListenerClient = CreateThread(NULL, 0, &listener_client, (LPVOID)q, 0, &listenerClientID);
 
 
 
