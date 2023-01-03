@@ -13,7 +13,7 @@ list* free_workers_list;
 list* busy_workers_list;
 
 
-DWORD WINAPI checkPercentage(LPVOID param) {
+DWORD WINAPI check_percentage(LPVOID param) {
     while (true) {
         Sleep(3000);
         int fullfillness = ((float)get_current_size(q) / (float)get_capacity(q)) * 100;
@@ -25,6 +25,10 @@ DWORD WINAPI checkPercentage(LPVOID param) {
             // open new worker processes
         }
     }
+}
+
+DWORD WINAPI dispatcher(LPVOID param) {
+    return 0;
 }
 
 int main() {
@@ -46,7 +50,7 @@ int main() {
 
 
 
-    hPercentage = CreateThread(NULL, 0, &checkPercentage, (LPVOID)0, 0, &percentageID);
+    hPercentage = CreateThread(NULL, 0, &check_percentage, (LPVOID)0, 0, &percentageID);
     hListenerClient = CreateThread(NULL, 0, &listener_client, (LPVOID)q, 0, &listenerClientID);
 
 
