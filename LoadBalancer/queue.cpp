@@ -33,8 +33,12 @@ int is_empty(queue* q)
 	return (q->currentSize == 0);
 }
 
-int current_size(queue* q) {
+int get_current_size(queue* q) {
 	return q->currentSize;
+}
+
+int get_capacity(queue* q) {
+	return q->capacity;
 }
 
 void enqueue(queue* q, char* message) {
