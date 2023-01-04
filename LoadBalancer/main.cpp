@@ -14,20 +14,6 @@ list* free_workers_list;
 list* busy_workers_list;
 
 
-DWORD WINAPI check_percentage(LPVOID param) {
-    while (true) {
-        Sleep(3000);
-        int fullfillness = ((float)get_current_size(q) / (float)get_capacity(q)) * 100;
-        printf("Queue is at %d%%\n", fullfillness);
-        if (fullfillness < 30) {
-            //shut down worker threads
-        }
-        else if (fullfillness > 70) {
-            // open new worker processes
-            //CreateProcess();
-        }
-    }
-}
 
 DWORD WINAPI dispatcher(LPVOID param) {
     return 0;
@@ -61,6 +47,22 @@ void create_new_worker_process() {
 
 }
 
+
+DWORD WINAPI check_percentage(LPVOID param) {
+    while (true) {
+        Sleep(3000);
+        int fullfillness = ((float)get_current_size(q) / (float)get_capacity(q)) * 100;
+        printf("Queue is at %d%%\n", fullfillness);
+        if (fullfillness < 30) {
+            //shut down worker threads
+        }
+        else if (fullfillness > 70) {
+            // open new worker processes
+            create_new_worker_process();
+        }
+    }
+}
+
 int main() {
 
     HANDLE hListenerClient;
@@ -83,9 +85,6 @@ int main() {
     hPercentage = CreateThread(NULL, 0, &check_percentage, (LPVOID)0, 0, &percentageID);
     hListenerClient = CreateThread(NULL, 0, &client_listener, (LPVOID)q, 0, &listenerClientID);
     hListenerWorker = CreateThread(NULL, 0, &worker_listener, (LPVOID)0, 0, &listenerWorkerID);
-
-    create_new_worker_process();
-    create_new_worker_process();
 
     //wait for listener to finish
     if (hListenerClient)

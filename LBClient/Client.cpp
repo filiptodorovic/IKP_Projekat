@@ -68,10 +68,10 @@ int main()
 
     u_long non_blocking = 1;
     ioctlsocket(connectSocket, FIONBIO, &non_blocking);
-
+    printf("Enter a message to send or [exit] to terminate\n");
     while (true) {
         // Read string from user into outgoing buffer
-        printf("Enter message to send. Enter 'exit' if you want to close connection. ");
+        printf("Input: ");
         gets_s(dataBuffer, BUFFER_SIZE);
 
         // Send message to server using connected socket
