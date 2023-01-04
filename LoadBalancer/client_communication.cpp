@@ -82,7 +82,7 @@ DWORD WINAPI client_read_write(LPVOID param) {
 }
 
 
-DWORD WINAPI listener_client(LPVOID param) {
+DWORD WINAPI client_listener(LPVOID param) {
     q = (queue*)param;
     // Socket used for listening for new clients 
     SOCKET listenSocket = INVALID_SOCKET;
@@ -151,7 +151,7 @@ DWORD WINAPI listener_client(LPVOID param) {
         return 1;
     }
 
-    printf("Server socket is set to listening mode. Waiting for new connection requests.\n");
+    printf("CLIENT listener socket is set to listening mode. Waiting for new connection requests.\n");
 
     do
     {

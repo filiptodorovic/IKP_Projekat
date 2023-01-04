@@ -148,7 +148,7 @@ DWORD WINAPI worker_listener(LPVOID param) {
         return 1;
     }
 
-    printf("Server socket is set to listening mode. Waiting for new connection requests.\n");
+    printf("WORKER socket is set to listening mode. Waiting for new connection requests.\n");
 
     do
     {
@@ -169,7 +169,7 @@ DWORD WINAPI worker_listener(LPVOID param) {
             return 1;
         }
 
-        printf("\nNew client request accepted. Client address: %s : %d\n", inet_ntoa(clientAddr.sin_addr), ntohs(clientAddr.sin_port));
+        printf("\nNew Worker accepted. Worker address: %s : %d\n", inet_ntoa(clientAddr.sin_addr), ntohs(clientAddr.sin_port));
 
         //create a new thread for a new client connected
         
