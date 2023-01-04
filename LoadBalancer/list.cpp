@@ -1,140 +1,110 @@
+#define  _CRT_SECURE_NO_WARNINGS
+#pragma warning(disable:4996)
 #include "list.h"
 
+void init_list(list** l) {
+	*l = (list*)malloc(sizeof(list));
+	(*l)->head = NULL;
+	(*l)->current = NULL;
+	(*l)->tail = NULL;
+	InitializeCriticalSection(&(*l)->cs);
+}
 
-void printList() {
-	struct node* ptr = head;
-	printf("\n[ ");
+void insert_first_node(HANDLE data, list* l) {
+	EnterCriticalSection(&l->cs);
 
-	//start from the beginning
-	while (ptr != NULL) {
-		printf("(%d,%d) ", ptr->key, ptr->data);
-		ptr = ptr->next;
+	node* new_node = (node*)malloc(sizeof(node));
+	new_node->thread_handle = data;
+	new_node->next = l->head;
+
+	// If the list is empty, set the tail to the new node
+	if (l->tail == NULL) {
+		l->tail = new_node;
 	}
 
-	printf(" ]");
+	// Set the head to the new node
+	l->head = new_node;
+	LeaveCriticalSection(&l->cs);
 }
 
-//insert link at the first location
-void insertFirst(int key, HANDLE data) {
-	//create a link
-	struct node* link = (struct node*)malloc(sizeof(struct node));
+void insert_last_node(HANDLE data, list *l) {
+	EnterCriticalSection(&l->cs);
+	node* new_node = (node*)malloc(sizeof(node));
 
-	link->key = key;
-	link->data = data;
+	new_node->thread_handle = data;
+	new_node->next = NULL;
 
-	//point it to old first node
-	link->next = head;
-
-	//point first to new first node
-	head = link;
-}
-
-void insertLast(int key, HANDLE data) {
-
-	struct node* link = (struct node*)malloc(sizeof(struct node));
-
-	link->key = key;
-	link->data = data;
-
-	tail->next = link;
-
-	tail = link;
-
-}
-
-//delete first item
-struct node* deleteFirst() {
-
-	//save reference to first link
-	struct node* tempLink = head;
-
-	//mark next to first link as first 
-	head = head->next;
-
-	//return the deleted link
-	return tempLink;
-}
-
-//is list empty
-bool isEmpty() {
-	return head == NULL;
-}
-
-int length() {
-	int length = 0;
-	struct node* current;
-
-	for (current = head; current != NULL; current = current->next) {
-		length++;
-	}
-
-	return length;
-}
-
-//find a link with given key
-struct node* find(int key) {
-
-	//start from the first link
-	struct node* current = head;
-
-	//if list is empty
-	if (head == NULL) {
-		return NULL;
-	}
-
-	//navigate through list
-	while (current->key != key) {
-
-		//if it is last node
-		if (current->next == NULL) {
-			return NULL;
-		}
-		else {
-			//go to next link
-			current = current->next;
-		}
-	}
-
-	//if data found, return the current Link
-	return current;
-}
-
-//delete a link with given key
-struct node* deleteElem(int key) {
-
-	//start from the first link
-	struct node* current = head;
-	struct node* previous = NULL;
-
-	//if list is empty
-	if (head == NULL) {
-		return NULL;
-	}
-
-	//navigate through list
-	while (current->key != key) {
-
-		//if it is last node
-		if (current->next == NULL) {
-			return NULL;
-		}
-		else {
-			//store reference to current link
-			previous = current;
-			//move to next link
-			current = current->next;
-		}
-	}
-
-	//found a match, update the link
-	if (current == head) {
-		//change first to point to next link
-		head = head->next;
+	// If the list is empty, set the head and tail to the new node
+	if (l->head == NULL) {
+		l->head = new_node;
+		l->tail = new_node;
 	}
 	else {
-		//bypass the current link
-		previous->next = current->next;
+		// Otherwise, add the new node to the end of the list
+		l->tail->next = new_node;
+		l->tail = new_node;
+	}
+	LeaveCriticalSection(&l->cs);
+}
+
+void delete_node(HANDLE data, list *l) {
+	EnterCriticalSection(&l->cs);
+	node* current = l->head;
+	node* previous = NULL;
+
+	// Search for the node to delete
+	while (current != NULL && current->thread_handle != data) {
+		previous = current;
+		current = current->next;
 	}
 
-	return current;
+	// If the node was found, delete it
+	if (current != NULL) {
+		// If the node to delete is the head of the list, update the head pointer
+		if (current == l->head) {
+			l->head = current->next;
+		}
+		// If the node to delete is the tail of the list, update the tail pointer
+		if (current == l->tail) {
+			l->tail = previous;
+		}
+		// Update the next pointer of the previous node to skip the deleted node
+		if (previous != NULL) {
+			previous->next = current->next;
+		}
+		// Free the memory used by the node
+		free(current);
+	}
+	else {
+		printf("Node is not in list.");
+	}
+
+	LeaveCriticalSection(&l->cs);
+}
+
+void print_list(list* l) {
+	EnterCriticalSection(&l->cs);
+	printf("LIST: \n");
+	node* current = l->head;
+	while (current != NULL) {
+		WCHAR* thread_name = NULL;
+		GetThreadDescription(current->thread_handle, &thread_name);
+		printf("[%ls]->", thread_name);
+		current = current->next;
+	}
+	printf("\n");
+	LeaveCriticalSection(&l->cs);
+}
+
+void delete_list(list* l) {
+	EnterCriticalSection(&l->cs);
+	while (l->head != l->tail) {
+		node* prev = l->head;
+		l->head = l->head->next;
+		free(prev);
+	}
+	l->head = NULL;
+	l->tail = NULL;
+	LeaveCriticalSection(&l->cs);
+	DeleteCriticalSection(&l->cs);
 }
