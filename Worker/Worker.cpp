@@ -69,31 +69,38 @@ int main()
     u_long non_blocking = 1;
     ioctlsocket(connectSocket, FIONBIO, &non_blocking);
 
-    
-    iResult = recv(connectSocket, dataBuffer, (int)strlen(dataBuffer), 0);
-    if (iResult > 0)	// Check if message is successfully received
-    {
-        dataBuffer[iResult] = '\0';
+    while (true) {
 
-        // Log message text
-        printf("LOAD BALANCER sent: %s.\n", dataBuffer);
-        // Send message to server using connected socket
-        iResult = send(connectSocket, dataBuffer, (int)strlen(dataBuffer), 0);
-
-        // Check result of send function
-        if (iResult == SOCKET_ERROR)
+        iResult = recv(connectSocket, dataBuffer, (int)strlen(dataBuffer), 0);
+        if (iResult > 0)	// Check if message is successfully received
         {
-            printf("send failed with error: %d\n", WSAGetLastError());
-            closesocket(connectSocket);
-            WSACleanup();
-            return 1;
+            dataBuffer[iResult] = '\0';
+
+            // Log message text
+            printf("LOAD BALANCER sent: %s.\n", dataBuffer);
+            // Send message to server using connected socket
+            iResult = send(connectSocket, dataBuffer, (int)strlen(dataBuffer), 0);
+
+            // Check result of send function
+            if (iResult == SOCKET_ERROR)
+            {
+                printf("send failed with error: %d\n", WSAGetLastError());
+                closesocket(connectSocket);
+                WSACleanup();
+                return 1;
+            }
+
+        }
+        else if (iResult == -1) {
+
+            continue;
+        }
+        else	// There was an error during recv
+        {
+
+            printf("recv failed with error: %d\n", WSAGetLastError());
         }
 
-    }
-    else	// There was an error during recv
-    {
-
-        printf("recv failed with error: %d\n", WSAGetLastError());
     }
 
     // Shutdown the connection since we're done
