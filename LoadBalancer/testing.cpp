@@ -47,17 +47,17 @@ void test_list() {
 
     printf("\nLista slobodnih: ");
     print_list(listZauzeti);
-    delete_node(hSlobodni2, listSlobodni);
+    //delete_node(hSlobodni2, listSlobodni);
 
     printf("\nLista slobodnih nakon brisanja: ");
     print_list(listSlobodni);
 
-    delete_node(hSlobodni1, listSlobodni);
+    //delete_node(hSlobodni1, listSlobodni);
     printf("\nLista slobodnih nakon brisanja: ");
     print_list(listSlobodni);
 
-    delete_node(hSlobodni3, listSlobodni);
-    delete_node(hSlobodni1, listSlobodni);
+    //delete_node(hSlobodni3, listSlobodni);
+    //delete_node(hSlobodni1, listSlobodni);
 
     printf("\nLista zauzetih: ");
     print_list(listZauzeti);

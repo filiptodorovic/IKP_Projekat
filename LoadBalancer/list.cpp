@@ -80,9 +80,13 @@ void print_list(list* l) {
 	printf("LIST: \n");
 	node* current = l->head;
 	while (current != NULL) {
-		WCHAR* thread_name = NULL;
-		GetThreadDescription(current->thread_handle, &thread_name);
-		printf("[%ls]->", thread_name);
+		WCHAR* thread_name_READ = NULL;
+		WCHAR* thread_name_WRITE = NULL;
+		GetThreadDescription(current->thread_read, &thread_name_READ);
+		printf("[%ls]->", thread_name_READ);
+
+		GetThreadDescription(current->thread_write, &thread_name_WRITE);
+		printf("[%ls]->", thread_name_WRITE);
 		current = current->next;
 	}
 	printf("\n");
