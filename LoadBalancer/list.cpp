@@ -10,12 +10,8 @@ void init_list(list** l) {
 	InitializeCriticalSection(&(*l)->cs);
 }
 
-void insert_first_node(HANDLE data, list* l) {
+void insert_first_node(node* new_node, list* l) {
 	EnterCriticalSection(&l->cs);
-
-	node* new_node = (node*)malloc(sizeof(node));
-	new_node->thread_handle = data;
-	new_node->next = l->head;
 
 	// If the list is empty, set the tail to the new node
 	if (l->tail == NULL) {
@@ -44,13 +40,13 @@ void insert_last_node(node* new_node, list* l) {
 
 }
 
-void delete_node(HANDLE data, list *l) {
+void delete_node(node* new_node, list *l) {
 	EnterCriticalSection(&l->cs);
 	node* current = l->head;
 	node* previous = NULL;
 
 	// Search for the node to delete
-	while (current != NULL && current->thread_handle != data) {
+	while (current != NULL && current != new_node) {
 		previous = current;
 		current = current->next;
 	}
