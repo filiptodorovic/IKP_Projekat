@@ -69,10 +69,27 @@ void delete_node(node* new_node, list *l) {
 		free(current);
 	}
 	else {
-		printf("Node is not in list.");
+		printf("Node is not in list.\n");
+	}
+	LeaveCriticalSection(&l->cs);
+
+}
+
+node* delete_first_node(list* l) {
+	node* firstNode;
+	EnterCriticalSection(&l->cs);
+
+	if (l->head != NULL) {
+		firstNode = l->head;
+		l->head = l->head->next;
+		LeaveCriticalSection(&l->cs);
+		return firstNode;
+	}
+	else {
+		printf("List is empty, no element at the beginning!\n");
+		return NULL;
 	}
 
-	LeaveCriticalSection(&l->cs);
 }
 
 void print_list(list* l) {

@@ -12,14 +12,30 @@
 
 #pragma warning(disable:4996)
 
+list* busy_workers_list;
+list* free_workers_list;
+queue* q;
+static unsigned int worker_process_count = 0;
 
 DWORD WINAPI check_percentage(LPVOID param) {
     while (true) {
         Sleep(3000);
-        int fullfillness = ((float)get_current_size(q) / (float)get_capacity(q)) * 100;
+        int fullfillness = ((float)get_current_size_queue() / (float)get_capacity_queue()) * 100;
         printf("Queue is at %d%%\n", fullfillness);
-        if (fullfillness < 30) {
+        if (fullfillness < 30 && worker_process_count>1) {
             //shut down worker threads
+            node* first_elem = delete_first_node(free_workers_list);
+
+            //wait for worker read and write to finish
+            if (first_elem->thread_read)
+                WaitForSingleObject(first_elem->thread_read, INFINITE);
+            if (first_elem->thread_write)
+                WaitForSingleObject(first_elem->thread_write, INFINITE);
+
+            // we should close the appropriate WORKER PROCESS..
+
+            free(first_elem);
+            worker_process_count--;
         }
         else if (fullfillness > 70) {
             // open new worker processes
@@ -35,13 +51,11 @@ DWORD WINAPI dispatcher(LPVOID param) {
     while (true) {
         Sleep(3000);
 
-        if (is_empty(q)) {
-            printf("D: Queue is empty.\n");
-        }
-        else {
-            dequeue(q, message);
+        if (!is_queue_empty()){
+            dequeue(message);
 
             node* first = free_workers_list->head;
+
 
             strcpy(first->msgBuffer, message);
             ReleaseSemaphore(first->msgSemaphore, 1, NULL);
@@ -51,9 +65,12 @@ DWORD WINAPI dispatcher(LPVOID param) {
     return 0;
 }
 
+
+STARTUPINFO startup_info;
+PROCESS_INFORMATION process_info;
+
 void create_new_worker_process() {
-    STARTUPINFO startup_info;
-    PROCESS_INFORMATION process_info;
+    
     memset(&startup_info, 0, sizeof(STARTUPINFO));
     startup_info.cb = sizeof(STARTUPINFO);
     memset(&process_info, 0, sizeof(PROCESS_INFORMATION));
@@ -76,8 +93,12 @@ void create_new_worker_process() {
 
         printf("CreateProcess failed (%d).\n", GetLastError());
     }
-
 }
+
+//WaitForSingleObject(process_info.hProcess, INFINITE);
+//CloseHandle(process_info.hProcess);
+//CloseHandle(process_info.hThread);
+
 
 int main() {
 
@@ -92,19 +113,19 @@ int main() {
     DWORD dispatcherID;
 
     init_hash_table();
-    q = create_queue(8);
+    create_queue(8);
     init_list(&free_workers_list);
     init_list(&busy_workers_list);
 
 
 
     hPercentage = CreateThread(NULL, 0, &check_percentage, (LPVOID)0, 0, &percentageID);
-    hListenerClient = CreateThread(NULL, 0, &client_listener, (LPVOID)q, 0, &listenerClientID);
+    hListenerClient = CreateThread(NULL, 0, &client_listener, (LPVOID)0, 0, &listenerClientID);
     hListenerWorker = CreateThread(NULL, 0, &worker_listener, (LPVOID)0, 0, &listenerWorkerID);
     hDispatcher = CreateThread(NULL, 0, &dispatcher, (LPVOID)0, 0, &dispatcherID);
 
-    create_new_worker_process();
-    create_new_worker_process();
+    //create_new_worker_process();
+    worker_process_count++;
 
     //wait for listener to finish
     if (hListenerClient)
@@ -119,7 +140,7 @@ int main() {
     delete_hashtable();
     delete_list(free_workers_list);
     delete_list(busy_workers_list);
-    delete_queue(q);
+    delete_queue();
 	return 0;
 }
 

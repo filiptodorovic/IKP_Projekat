@@ -108,7 +108,7 @@ DWORD WINAPI producer(LPVOID param) {
     queue* q = (queue*)param;
     char data_a[10] = "ABC";
     while (true) {
-        enqueue(q, data_a);
+        enqueue(data_a);
         Sleep(300);
     }
 }
@@ -117,11 +117,11 @@ DWORD WINAPI consumer(LPVOID param) {
     while (true) {
         char buffer[10];
         Sleep(500);
-        dequeue(q, buffer);
+        dequeue(buffer);
     }
 }
 void test_dynamic_enqueue_dequeue() {
-    queue* q = create_queue(7);
+    create_queue(7);
 
     HANDLE hProducer;
     HANDLE hConsumer;

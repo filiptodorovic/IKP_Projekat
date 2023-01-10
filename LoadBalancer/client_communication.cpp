@@ -16,19 +16,29 @@
 #pragma comment (lib, "AdvApi32.lib")
 
 #define BUFFER_SIZE 256
-#define CLIENT_NAME_LEN 5 
+#define CLIENT_NAME_LEN 10 
 #define SERVER_PORT 5059
 
 static int client_count = 0;
+
+struct clientThreadStruct {
+    SOCKET acceptedSocket;
+    char clientName[CLIENT_NAME_LEN];
+};
 //static queue* q = NULL;
 
 DWORD WINAPI client_read_write(LPVOID param) {
-    SOCKET acceptedSocket = (SOCKET)param;
+    char clientName[CLIENT_NAME_LEN];
+    clientThreadStruct *paramStruct = (clientThreadStruct*)param;
+    sprintf(clientName, paramStruct->clientName);
+    SOCKET acceptedSocket = paramStruct->acceptedSocket;
+    //free(paramStruct);
 
     //u_long non_blocking = 1;
     //ioctlsocket(acceptedSocket, FIONBIO, &non_blocking);
 
     char dataBuffer[BUFFER_SIZE];
+
     int client_num = client_count++;
 
     //check if we got data from client or EXIT signal
@@ -51,7 +61,13 @@ DWORD WINAPI client_read_write(LPVOID param) {
 
             // Log message text
             printf("Client %d sent: %s.\n", client_num, dataBuffer);
-            enqueue(q,dataBuffer);
+            char toEnqueue[BUFFER_SIZE + CLIENT_NAME_LEN];
+
+            memset(toEnqueue, 0, BUFFER_SIZE + CLIENT_NAME_LEN);
+            memcpy(toEnqueue, clientName, CLIENT_NAME_LEN);
+            memcpy((toEnqueue + CLIENT_NAME_LEN), dataBuffer, strlen(dataBuffer) + 1);
+
+            enqueue(toEnqueue);
 
         }
         else if (iResult == 0)	// Check if shutdown command is received
@@ -79,11 +95,12 @@ DWORD WINAPI client_read_write(LPVOID param) {
         }*/
 
     } while (true);
+
+    
 }
 
 
 DWORD WINAPI client_listener(LPVOID param) {
-    q = (queue*)param;
     // Socket used for listening for new clients 
     SOCKET listenSocket = INVALID_SOCKET;
 
@@ -95,7 +112,6 @@ DWORD WINAPI client_listener(LPVOID param) {
 
     // Buffer used for storing incoming data
     char dataBuffer[BUFFER_SIZE];
-    char clientName[CLIENT_NAME_LEN];
 
     // WSADATA data structure that is to receive details of the Windows Sockets implementation
     WSADATA wsaData;
@@ -152,6 +168,7 @@ DWORD WINAPI client_listener(LPVOID param) {
     }
 
     printf("CLIENT listener socket is set to listening mode. Waiting for new connection requests.\n");
+    clientThreadStruct cli;
 
     do
     {
@@ -177,14 +194,19 @@ DWORD WINAPI client_listener(LPVOID param) {
         //create a new thread for a new client connected
         HANDLE hClient;
         DWORD ClientID;
-        hClient = CreateThread(NULL, 0, &client_read_write, (LPVOID)acceptedSocket, 0, &ClientID);
+
+        cli.acceptedSocket = acceptedSocket;
+        sprintf(cli.clientName, "Client%d", client_count);
+        
+
+        hClient = CreateThread(NULL, 0, &client_read_write, (LPVOID)&cli, 0, &ClientID);
 
         //add it to the hash table
         client_thread* newCli = (client_thread*)malloc(sizeof(client_thread));
-        sprintf(clientName, "Client%d", client_count);
-        strcpy(newCli->clientName, clientName);
+        sprintf(newCli->clientName, "Client%d", client_count);
         newCli->clientThread = hClient;
         newCli->finished = false;
+        newCli->acceptedSocket = acceptedSocket;
 
         insert_client(newCli);
         //print_table();

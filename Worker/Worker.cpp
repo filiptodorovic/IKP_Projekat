@@ -35,7 +35,7 @@ int main()
     // Initialize windows sockets library for this process
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
     {
-        printf("WSAStartup failed with error: %d\n", WSAGetLastError());
+        printf("[WORKER]: WSAStartup failed with error: %d\n", WSAGetLastError());
         return 1;
     }
 
@@ -46,7 +46,7 @@ int main()
 
     if (connectSocket == INVALID_SOCKET)
     {
-        printf("socket failed with error: %ld\n", WSAGetLastError());
+        printf("[WORKER]: socket failed with error: %ld\n", WSAGetLastError());
         WSACleanup();
         return 1;
     }
@@ -60,7 +60,7 @@ int main()
     // Connect to server specified in serverAddress and socket connectSocket
     if (connect(connectSocket, (SOCKADDR*)&serverAddress, sizeof(serverAddress)) == SOCKET_ERROR)
     {
-        printf("Unable to connect to server.\n");
+        printf("[WORKER]: Unable to connect to server.\n");
         closesocket(connectSocket);
         WSACleanup();
         return 1;
@@ -77,14 +77,14 @@ int main()
             dataBuffer[iResult] = '\0';
 
             // Log message text
-            printf("LOAD BALANCER sent: %s.\n", dataBuffer);
+            printf("[WORKER]: load balancer sent: %s.\n", dataBuffer);
             // Send message to server using connected socket
             iResult = send(connectSocket, dataBuffer, (int)strlen(dataBuffer), 0);
 
             // Check result of send function
             if (iResult == SOCKET_ERROR)
             {
-                printf("send failed with error: %d\n", WSAGetLastError());
+                printf("[WORKER]: send failed with error: %d\n", WSAGetLastError());
                 closesocket(connectSocket);
                 WSACleanup();
                 return 1;
@@ -98,7 +98,8 @@ int main()
                 continue;
             }
             else {
-                printf("recv failed with error: %d\n", WSAGetLastError());
+                printf("[WORKER]: recv failed with error: %d\n", WSAGetLastError());
+                break;
             }
 
         }
@@ -111,7 +112,7 @@ int main()
     // Check if connection is succesfully shut down.
     if (iResult == SOCKET_ERROR)
     {
-        printf("Shutdown failed with error: %d\n", WSAGetLastError());
+        printf("[WORKER]: Shutdown failed with error: %d\n", WSAGetLastError());
         closesocket(connectSocket);
         WSACleanup();
         return 1;

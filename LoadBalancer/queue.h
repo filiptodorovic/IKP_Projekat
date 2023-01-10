@@ -11,14 +11,14 @@ typedef struct {
 	char** messageArray;
 }queue;
 
-queue* q;
+extern queue* q;
 
-queue* create_queue(int capacity);
-int is_full(queue* q);
-int is_empty(queue* q);
-void enqueue(queue* q, char* message);
-void dequeue(queue* q,char* message);
-void print_queue(queue* q);
-int get_current_size(queue* q);
-int get_capacity(queue* q);
-void delete_queue(queue* q);
+void create_queue(int capacity);
+int is_queue_full();
+int is_queue_empty();
+void enqueue(char* message);
+void dequeue(char* message);
+void print_queue();
+int get_current_size_queue();
+int get_capacity_queue();
+void delete_queue();
