@@ -9,6 +9,7 @@
 #include "worker_communication.h"
 #include "queue.h"
 #include "hash_map.h"
+#include "list.h"
 
 #pragma warning(disable:4996)
 #pragma comment (lib, "Ws2_32.lib")
@@ -21,7 +22,62 @@
 
 static int worker_count = 0;
 
-DWORD WINAPI worker_read_write(LPVOID param) {
+DWORD WINAPI worker_write(LPVOID param) {
+
+    node* new_node = (node*)param;
+
+    SOCKET acceptedSocket = new_node->acceptedSocket;
+    HANDLE msgSemaphore = new_node->msgSemaphore;
+
+    //u_long non_blocking = 1;
+    //ioctlsocket(acceptedSocket, FIONBIO, &non_blocking);
+
+    //char dataBuffer[BUFFER_SIZE];
+    int worker_num = worker_count++;
+    int iResult;
+    
+    while (true) {
+        
+        //check if we got data from client or EXIT signal
+        //OR if we got a message from worker
+        while (q->currentSize == 0) {
+            if (WaitForSingleObject(msgSemaphore, INFINITE) == WAIT_OBJECT_0 + 1)
+                break;//The queue is full, wait for elements to be dequeued
+        }
+
+        char* msg = new_node->msgBuffer;
+
+        iResult = send(acceptedSocket, msg, (int)strlen(msg), 0);
+
+        if (iResult == SOCKET_ERROR)
+        {
+            printf("send failed with error: %d\n", WSAGetLastError());
+            //closesocket(connectSocket);
+            //WSACleanup();
+            return 1;
+        }
+        else {
+
+            printf("Worker thread sent: %s.\n", msg);
+
+            if (strcmp(msg, "exit") == 0) {
+
+                printf("Worker process signig off.\n");
+                break;
+            }
+                
+        }
+
+        strcpy(msg, '\0');
+       
+    }
+    
+
+
+
+}
+
+DWORD WINAPI worker_read(LPVOID param) {
     SOCKET acceptedSocket = (SOCKET)param;
 
     //u_long non_blocking = 1;
@@ -79,7 +135,7 @@ DWORD WINAPI worker_read_write(LPVOID param) {
     } while (true);
 }
 
-
+//dva nova threada - 1 koji prima (receive - recv od workera i salje odg klijentu) i 1 koji salje poruke na worker (send - ceka na notify od dispatchera, cita iz msgBuffera i salje na worker)
 DWORD WINAPI worker_listener(LPVOID param) {
     // Socket used for listening for new clients 
     SOCKET listenSocket = INVALID_SOCKET;
@@ -172,6 +228,25 @@ DWORD WINAPI worker_listener(LPVOID param) {
         printf("\nNew Worker accepted. Worker address: %s : %d\n", inet_ntoa(clientAddr.sin_addr), ntohs(clientAddr.sin_port));
 
         //create a new thread for a new client connected
+        //create thread za workere prima ceo element liste ne samo accepted socket!!!
+        HANDLE hWorkerWrite, hWorkerRead;
+        DWORD workerWID, workerRID;
+        HANDLE msgSemaphore = CreateSemaphore(0, 0, 1, NULL);
+
+        node* new_node = (node*)malloc(sizeof(node));
+        new_node->msgSemaphore = msgSemaphore;
+        new_node->msgBuffer = (char*)malloc(sizeof(char) * 256);
+        new_node->acceptedSocket = acceptedSocket;
+
+        HANDLE workerWrite = CreateThread(NULL, 0, &worker_write, (LPVOID)new_node, 0, &workerWID);
+        HANDLE workerRead = CreateThread(NULL, 0, &worker_read, (LPVOID)new_node, 0, &workerRID);
+
+        new_node->thread_read = workerRead;
+        new_node->thread_write = workerWrite;
+        new_node->next = NULL;
+        
+        insert_last_node(new_node, free_workers_list);
+       
         
         //Put accepted socket/thread in the FREE LIST
 

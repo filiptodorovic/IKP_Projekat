@@ -72,7 +72,7 @@ int main()
     while (true) {
 
         iResult = recv(connectSocket, dataBuffer, (int)strlen(dataBuffer), 0);
-        if (iResult > 0)	// Check if message is successfully received
+        if (iResult != SOCKET_ERROR)	// Check if message is successfully received
         {
             dataBuffer[iResult] = '\0';
 
@@ -91,14 +91,16 @@ int main()
             }
 
         }
-        else if (iResult == -1) {
-
-            continue;
-        }
         else	// There was an error during recv
         {
 
-            printf("recv failed with error: %d\n", WSAGetLastError());
+            if (WSAGetLastError() == WSAEWOULDBLOCK) {
+                continue;
+            }
+            else {
+                printf("recv failed with error: %d\n", WSAGetLastError());
+            }
+
         }
 
     }

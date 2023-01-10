@@ -20,7 +20,7 @@
 #define SERVER_PORT 5059
 
 static int client_count = 0;
-static queue* q = NULL;
+//static queue* q = NULL;
 
 DWORD WINAPI client_read_write(LPVOID param) {
     SOCKET acceptedSocket = (SOCKET)param;

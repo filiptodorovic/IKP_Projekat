@@ -11,6 +11,8 @@ typedef struct {
 	char** messageArray;
 }queue;
 
+queue* q;
+
 queue* create_queue(int capacity);
 int is_full(queue* q);
 int is_empty(queue* q);

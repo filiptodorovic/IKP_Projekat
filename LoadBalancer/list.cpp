@@ -27,12 +27,8 @@ void insert_first_node(HANDLE data, list* l) {
 	LeaveCriticalSection(&l->cs);
 }
 
-void insert_last_node(HANDLE data, list *l) {
+void insert_last_node(node* new_node, list* l) {
 	EnterCriticalSection(&l->cs);
-	node* new_node = (node*)malloc(sizeof(node));
-
-	new_node->thread_handle = data;
-	new_node->next = NULL;
 
 	// If the list is empty, set the head and tail to the new node
 	if (l->head == NULL) {
@@ -45,6 +41,7 @@ void insert_last_node(HANDLE data, list *l) {
 		l->tail = new_node;
 	}
 	LeaveCriticalSection(&l->cs);
+
 }
 
 void delete_node(HANDLE data, list *l) {

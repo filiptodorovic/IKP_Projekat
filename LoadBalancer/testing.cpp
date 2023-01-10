@@ -36,14 +36,14 @@ void test_list() {
     init_list(&listSlobodni);
     init_list(&listZauzeti);
 
-    insert_last_node(hSlobodni1, listSlobodni);
+    /*insert_last_node(hSlobodni1, listSlobodni);
     insert_last_node(hSlobodni2, listSlobodni);
     insert_first_node(hSlobodni3, listSlobodni);
 
 
     insert_last_node(hZauzeti1, listZauzeti);
     insert_last_node(hZauzeti2, listZauzeti);
-    insert_last_node(hZauzeti3, listZauzeti);
+    insert_last_node(hZauzeti3, listZauzeti);*/
 
     printf("\nLista slobodnih: ");
     print_list(listZauzeti);
