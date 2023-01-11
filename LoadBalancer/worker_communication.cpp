@@ -9,6 +9,7 @@
 #include "worker_communication.h"
 #include "queue.h"
 #include "hash_map.h"
+#include "list.h"
 
 #pragma warning(disable:4996)
 #pragma comment (lib, "Ws2_32.lib")
@@ -21,11 +22,65 @@
 
 static int worker_count = 0;
 
-DWORD WINAPI worker_read_write(LPVOID param) {
-    SOCKET acceptedSocket = (SOCKET)param;
+DWORD WINAPI worker_write(LPVOID param) {
 
-    //u_long non_blocking = 1;
-    //ioctlsocket(acceptedSocket, FIONBIO, &non_blocking);
+    node* new_node = (node*)param;
+
+    SOCKET acceptedSocket = new_node->acceptedSocket;
+    HANDLE msgSemaphore = new_node->msgSemaphore;
+
+    //char dataBuffer[BUFFER_SIZE];
+    int worker_num = worker_count++;
+    int iResult;
+    
+    while (true) {
+        
+        //check if we got data from client or EXIT signal
+        //OR if we got a message from worker
+        
+        WaitForSingleObject(msgSemaphore, INFINITE);
+        //The queue is full, wait for elements to be dequeued
+
+        messageStruct message;
+        memset(message.clientName, 0,10);
+        memset(message.messageBuffer, 0,256);
+        strcpy(message.clientName, new_node->message->clientName);
+        strcpy(message.messageBuffer, new_node->message->messageBuffer);
+        free(new_node->message);
+
+
+        iResult = send(acceptedSocket, (char*)&message,sizeof(messageStruct) , 0);
+
+        if (iResult != SOCKET_ERROR)
+        {
+            printf("[WORKER WRITE]: %s sent: %s.\n", message.clientName,message.messageBuffer);
+            if (strcmp(message.messageBuffer, "exit") == 0) {
+
+                printf("[WORKER WRITE]: Worker process signig off.\n");
+                break;
+            }
+
+        }
+        else
+        {
+
+            if (WSAGetLastError() == WSAEWOULDBLOCK) { //the recieve would block, continue
+                continue;
+            }
+            else {
+                printf("[WORKER WRITE]: send failed with error: %d\n", WSAGetLastError());
+            }
+
+        }
+        // empty the message buffer
+       
+    }
+    return 0;
+}
+
+DWORD WINAPI worker_read(LPVOID param) {
+    node* new_node = (node*)param;
+    SOCKET acceptedSocket = new_node->acceptedSocket;
 
     char dataBuffer[BUFFER_SIZE];
     int worker_num = worker_count++;
@@ -34,52 +89,41 @@ DWORD WINAPI worker_read_write(LPVOID param) {
     //OR if we got a message from worker
     do
     {
-        // Receive data until the client shuts down the connection
         int iResult = recv(acceptedSocket, dataBuffer, BUFFER_SIZE, 0);
 
-        if (iResult > 0)	// Check if message is successfully received
+        if(iResult != SOCKET_ERROR)
         {
             dataBuffer[iResult] = '\0';
+            //messageStruct* recievedMessage = (messageStruct*)dataBuffer;
 
-            if (strcmp(dataBuffer, "exit") == 0) {
-                // Connection was closed successfully
-                printf("Connection with worker %d closed.\n", worker_num);
-                closesocket(acceptedSocket);
+            printf("[WORKER READ] Worker sent: %s.\n",dataBuffer);
+
+            char clientName[CLIENT_NAME_LEN];
+            //strncpy()
+
+            //client_thread* lookup_client(char* name);
+
+            // Send the message to the client...
+
+        }
+        else
+        {
+
+            if (WSAGetLastError() == WSAEWOULDBLOCK) { //the recieve would block, continue
+                continue;
+            }
+            else {
+                printf("[WORKER READ]: recv failed with error: %d\n", WSAGetLastError());
                 break;
             }
 
-            // Log message text
-            printf("Worker %d sent: %s.\n", worker_num, dataBuffer);
-
         }
-        else if (iResult == 0)	// Check if shutdown command is received
-        {
-            printf("Connection with client closed.\n");
-            closesocket(acceptedSocket);
-            break;
-        }
-        else	// There was an error during recv
-        {
-
-            printf("recv failed with error: %d\n", WSAGetLastError());
-            closesocket(acceptedSocket);
-            break;
-        }
-
-        //checking if client is receiving messages ---> sending notifications to client is task for Worker thread
-        /*iResult = send(acceptedSocket, "hello client!", (int)strlen("hello client!"), 0);
-        if (iResult == SOCKET_ERROR)
-        {
-            printf("send failed with error: %d\n", WSAGetLastError());
-            //closesocket(connectSocket);
-            WSACleanup();
-            return 1;
-        }*/
 
     } while (true);
+    return 0;
 }
 
-
+//dva nova threada - 1 koji prima (receive - recv od workera i salje odg klijentu) i 1 koji salje poruke na worker (send - ceka na notify od dispatchera, cita iz msgBuffera i salje na worker)
 DWORD WINAPI worker_listener(LPVOID param) {
     // Socket used for listening for new clients 
     SOCKET listenSocket = INVALID_SOCKET;
@@ -169,9 +213,30 @@ DWORD WINAPI worker_listener(LPVOID param) {
             return 1;
         }
 
-        printf("\nNew Worker accepted. Worker address: %s : %d\n", inet_ntoa(clientAddr.sin_addr), ntohs(clientAddr.sin_port));
+        printf("\n[WORKER THREAD]: New Worker accepted. Worker address: %s : %d\n", inet_ntoa(clientAddr.sin_addr), ntohs(clientAddr.sin_port));
 
         //create a new thread for a new client connected
+        //create thread za workere prima ceo element liste ne samo accepted socket!!!
+        HANDLE hWorkerWrite, hWorkerRead;
+        DWORD workerWID, workerRID;
+
+        node* new_node = (node*)malloc(sizeof(node));
+        new_node->msgSemaphore = CreateSemaphore(0, 0, 1, NULL);
+        new_node->acceptedSocket = acceptedSocket;
+
+        unsigned long non_blocking = 1;
+        ioctlsocket(acceptedSocket, FIONBIO, &non_blocking);
+
+
+        HANDLE workerWrite = CreateThread(NULL, 0, &worker_write, (LPVOID)new_node, 0, &workerWID);
+        HANDLE workerRead = CreateThread(NULL, 0, &worker_read, (LPVOID)new_node, 0, &workerRID);
+
+        new_node->thread_read = workerRead;
+        new_node->thread_write = workerWrite;
+        new_node->next = NULL;
+        
+        insert_last_node(new_node, free_workers_list);
+       
         
         //Put accepted socket/thread in the FREE LIST
 

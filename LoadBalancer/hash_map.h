@@ -7,6 +7,8 @@ typedef struct client_thread {
 	char clientName[CLIENT_NAME_LEN]; //We will have maximum of 1000 clients
 	bool finished = false;
 	struct client_thread* next;
+	//ovde staviti acceptedSocket klijenta
+	SOCKET acceptedSocket;
 }client_thread;
 
 extern client_thread* hash_table_clt[MAX_ELEM];
