@@ -3,13 +3,14 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <windows.h>
+#include "message_structure.h"
 
 typedef struct node{
 	HANDLE thread_read;
 	HANDLE thread_write;
 	HANDLE msgSemaphore;
 	SOCKET acceptedSocket;
-	char* msgBuffer;
+	messageStruct* message;
 	struct node* next;
 }node;
 

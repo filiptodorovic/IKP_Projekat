@@ -18,9 +18,6 @@
     <ClCompile Include="list.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="client_communication.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="hash_map.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -35,6 +32,9 @@
     </ClCompile>
     <ClCompile Include="worker_communication.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client_communication.cpp">
+      <Filter>Resource Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -54,6 +54,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="worker_communication.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="message_structure.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

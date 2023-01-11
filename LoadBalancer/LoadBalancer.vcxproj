@@ -152,6 +152,7 @@
     <ClInclude Include="client_communication.h" />
     <ClInclude Include="hash_map.h" />
     <ClInclude Include="list.h" />
+    <ClInclude Include="message_structure.h" />
     <ClInclude Include="queue.h" />
     <ClInclude Include="testing.h" />
     <ClInclude Include="worker_communication.h" />

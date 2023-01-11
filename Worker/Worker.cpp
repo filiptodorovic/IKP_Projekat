@@ -18,7 +18,12 @@
 
 #define SERVER_IP_ADDRESS "127.0.0.1"
 #define SERVER_PORT 6069
-#define BUFFER_SIZE 256
+#define BUFFER_SIZE 512
+
+typedef struct messageStruct {
+    char clientName[10];
+    char messageBuffer[256];
+}messageStruct;
 
 // TCP client that use blocking sockets
 int main()
@@ -71,6 +76,7 @@ int main()
 
     u_long non_blocking = 1;
     ioctlsocket(connectSocket, FIONBIO, &non_blocking);
+    char answerToLB[256];
 
     while (true) {
 
@@ -79,16 +85,21 @@ int main()
         {
             dataBuffer[iResult] = '\0';
 
+            messageStruct* recievedMessage = (messageStruct*)dataBuffer;
+
+
             // Log message text
-            printf("[WORKER]: load balancer sent: %s.\n", dataBuffer);
+            printf("[WORKER]: %s sent: %s.\n",recievedMessage->clientName, recievedMessage->messageBuffer);
             // Send message to server using connected socket
 
             while (true) {
-                sprintf(dataBuffer, "%s", "Success");
-                iResult = send(connectSocket, dataBuffer, (int)strlen(dataBuffer), 0);
+                //sprintf(answerToLB.messageBuffer, "Success writing->%s",recievedMessage->messageBuffer);
+                //strcpy(answerToLB.clientName, recievedMessage->clientName);
+                sprintf(answerToLB, "Success! %s: %s ", recievedMessage->clientName, recievedMessage->messageBuffer);
+                iResult = send(connectSocket, answerToLB, strlen(answerToLB), 0);
                 if (iResult != SOCKET_ERROR)	// Check if message is successfully received
                 {
-                    printf("[WORKER]: returned to load balancer %s\n", dataBuffer);
+                    printf("[WORKER]: returned to %s: %s\n", recievedMessage->clientName,recievedMessage->messageBuffer);
                     break;
                 }
                 else	// There was an error during recv

@@ -105,7 +105,7 @@ void test_hashing() {
     printf("ABC14 => %d\n", hash(str));
 }
 DWORD WINAPI producer(LPVOID param) {
-    queue* q = (queue*)param;
+    /*queue* q = (queue*)param;
     char clientName[10] = "Client0";
     char message[10] = "mess";
     char toEnqueue[20];
@@ -117,15 +117,17 @@ DWORD WINAPI producer(LPVOID param) {
     while (true) {
         enqueue(toEnqueue);
         Sleep(300);
-    }
+    }*/
+    return 0;
 }
 DWORD WINAPI consumer(LPVOID param) {
-    queue* q = (queue*)param;
+    /*queue* q = (queue*)param;
     while (true) {
         char buffer[10];
         Sleep(500);
         dequeue(buffer);
-    }
+    }*/
+    return 0;
 }
 void test_dynamic_enqueue_dequeue() {
     create_queue(7);

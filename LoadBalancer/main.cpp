@@ -46,19 +46,20 @@ DWORD WINAPI check_percentage(LPVOID param) {
 
 DWORD WINAPI dispatcher(LPVOID param) {
 
-    char message[256];
+    messageStruct* message = NULL;
 
     while (true) {
         Sleep(3000);
 
         if (!is_queue_empty()){
-            dequeue(message);
-
             node* first = free_workers_list->head;
 
+            if (first != NULL) {
+                dequeue(&message);
 
-            strcpy(first->msgBuffer, message);
-            ReleaseSemaphore(first->msgSemaphore, 1, NULL);
+                first->message = message; // message structure is now the one in the front of the queue
+                ReleaseSemaphore(first->msgSemaphore, 1, NULL);
+            }
 
         }
     }
@@ -124,7 +125,7 @@ int main() {
     hListenerWorker = CreateThread(NULL, 0, &worker_listener, (LPVOID)0, 0, &listenerWorkerID);
     hDispatcher = CreateThread(NULL, 0, &dispatcher, (LPVOID)0, 0, &dispatcherID);
 
-    create_new_worker_process();
+    //create_new_worker_process();
     worker_process_count++;
 
     //wait for listener to finish
