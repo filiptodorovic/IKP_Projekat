@@ -37,10 +37,10 @@ DWORD WINAPI worker_write(LPVOID param) {
         
         //check if we got data from client or EXIT signal
         //OR if we got a message from worker
-        while (true) {
-            if (WaitForSingleObject(msgSemaphore, INFINITE) == WAIT_OBJECT_0+1)
-                break;//The queue is full, wait for elements to be dequeued
-        }
+        
+        WaitForSingleObject(msgSemaphore, INFINITE);
+        //The queue is full, wait for elements to be dequeued
+
 
         char* msg = new_node->msgBuffer;
 

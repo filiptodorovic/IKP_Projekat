@@ -79,7 +79,27 @@ int main()
             // Log message text
             printf("[WORKER]: load balancer sent: %s.\n", dataBuffer);
             // Send message to server using connected socket
-            iResult = send(connectSocket, dataBuffer, (int)strlen(dataBuffer), 0);
+
+            while (true) {
+                iResult = send(connectSocket, dataBuffer, (int)strlen(dataBuffer), 0);
+                if (iResult != SOCKET_ERROR)	// Check if message is successfully received
+                {
+                    printf("[WORKER]: returned to load balancer %d\n", dataBuffer);
+                    break;
+                }
+                else	// There was an error during recv
+                {
+
+                    if (WSAGetLastError() == WSAEWOULDBLOCK) {
+                        continue;
+                    }
+                    else {
+                        printf("[WORKER]: send failed with error: %d\n", WSAGetLastError());
+                        break;
+                    }
+
+                }
+            }
 
             // Check result of send function
             if (iResult == SOCKET_ERROR)
