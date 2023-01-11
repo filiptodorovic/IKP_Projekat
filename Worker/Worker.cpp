@@ -13,6 +13,9 @@
 #pragma comment (lib, "Mswsock.lib")
 #pragma comment (lib, "AdvApi32.lib")
 
+#pragma warning(disable:4996)
+
+
 #define SERVER_IP_ADDRESS "127.0.0.1"
 #define SERVER_PORT 6069
 #define BUFFER_SIZE 256
@@ -81,10 +84,11 @@ int main()
             // Send message to server using connected socket
 
             while (true) {
+                sprintf(dataBuffer, "%s", "Success");
                 iResult = send(connectSocket, dataBuffer, (int)strlen(dataBuffer), 0);
                 if (iResult != SOCKET_ERROR)	// Check if message is successfully received
                 {
-                    printf("[WORKER]: returned to load balancer %d\n", dataBuffer);
+                    printf("[WORKER]: returned to load balancer %s\n", dataBuffer);
                     break;
                 }
                 else	// There was an error during recv

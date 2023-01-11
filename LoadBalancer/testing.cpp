@@ -106,9 +106,16 @@ void test_hashing() {
 }
 DWORD WINAPI producer(LPVOID param) {
     queue* q = (queue*)param;
-    char data_a[10] = "ABC";
+    char clientName[10] = "Client0";
+    char message[10] = "mess";
+    char toEnqueue[20];
+
+    memset(toEnqueue, 0, 20);
+    memcpy(toEnqueue, clientName, 10);
+    memcpy((toEnqueue + 10), message, strlen(message) + 1);
+
     while (true) {
-        enqueue(data_a);
+        enqueue(toEnqueue);
         Sleep(300);
     }
 }

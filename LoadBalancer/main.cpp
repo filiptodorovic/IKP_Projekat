@@ -77,10 +77,10 @@ void create_new_worker_process() {
     TCHAR buff[100];
     GetCurrentDirectory(100, buff);
     wcscat(buff, L"\\..\\Debug\\Worker.exe");
-
+    TCHAR cmd[] = L"Worker.exe";
     if (!CreateProcess(
         buff,          // LPCTSTR lpApplicationName
-        NULL,                // LPTSTR lpCommandLine
+        cmd,                // LPTSTR lpCommandLine
         NULL,                // LPSECURITY_ATTRIBUTES lpProcessAttributes
         NULL,                // LPSECURITY_ATTRIBUTES lpThreadAttributes
         FALSE,               // BOOL bInheritHandles
@@ -124,7 +124,7 @@ int main() {
     hListenerWorker = CreateThread(NULL, 0, &worker_listener, (LPVOID)0, 0, &listenerWorkerID);
     hDispatcher = CreateThread(NULL, 0, &dispatcher, (LPVOID)0, 0, &dispatcherID);
 
-    //create_new_worker_process();
+    create_new_worker_process();
     worker_process_count++;
 
     //wait for listener to finish

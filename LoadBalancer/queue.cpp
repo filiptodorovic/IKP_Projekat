@@ -50,10 +50,13 @@ int get_capacity_queue() {
 }
 
 void enqueue(char* message) {
-	while (is_queue_full()) {
+	if (is_queue_full) {
+		WaitForSingleObject(hSemaporeQueueEmpty, INFINITE);
+	}
+	/*while (is_queue_full()) {
 		if (WaitForSingleObject(hSemaporeQueueEmpty, INFINITE) == WAIT_OBJECT_0 + 1)
 			break;
-	}
+	}*/
 	{
 		EnterCriticalSection(&q->cs);
 		//The front and rear will go around like in a circular buffer
@@ -76,9 +79,13 @@ void enqueue(char* message) {
 }
 
 void dequeue(char* message) {
-	while (q->currentSize == 0) {
-		if (WaitForSingleObject(hSemaporeQueueFull, INFINITE) == WAIT_OBJECT_0 + 1)
-			break;//The queue is full, wait for elements to be dequeued
+	//while (q->currentSize == 0) {
+	//	if (WaitForSingleObject(hSemaporeQueueFull, INFINITE) == WAIT_OBJECT_0 + 1)
+	//		break;//The queue is full, wait for elements to be dequeued
+	//}
+
+	if(q->currentSize == 0) {
+		WaitForSingleObject(hSemaporeQueueFull, INFINITE);
 	}
 
 	{
