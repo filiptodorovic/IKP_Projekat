@@ -76,7 +76,7 @@ int main()
 
         // Send message to server using connected socket
         iResult = send(connectSocket, dataBuffer, (int)strlen(dataBuffer), 0);
-        if (strcmp(dataBuffer,"exit")==0)
+        if (strcmp(dataBuffer, "exit") == 0)
             break;
 
         // Check result of send function
@@ -86,11 +86,40 @@ int main()
             closesocket(connectSocket);
             WSACleanup();
             return 1;
-        }
+        } 
 
         printf("Message successfully sent. Total bytes: %ld\n", iResult);
-        
+
         iResult = recv(connectSocket, dataBuffer, (int)strlen(dataBuffer), 0);
+
+        if (iResult != SOCKET_ERROR) {
+
+            if (iResult > 0) {
+                dataBuffer[iResult] = '\0';
+                // Log message text
+                printf("[CLIENT]: Worker sent: %s.\n", dataBuffer);
+            }
+            else if (iResult == 0) {
+                printf("[CLIENT]: Connection closed.\n");
+                break;
+            }
+
+        }
+        else	// There was an error during recv
+        {
+
+            if (WSAGetLastError() == WSAEWOULDBLOCK) {
+                continue;
+            }
+            else {
+                printf("[CLIENT]: recv failed with error: %d\n", WSAGetLastError());
+                break;
+            }
+
+        }
+        
+    }
+        /*
         if (iResult > 0)	// Check if message is successfully received
         {
             dataBuffer[iResult] = '\0';
@@ -110,12 +139,9 @@ int main()
             //closesocket(acceptedSocket);
             break;
         }
+        */
         
-        
-    }
-
-    
-
+   
     // Shutdown the connection since we're done
     iResult = shutdown(connectSocket, SD_BOTH);
 

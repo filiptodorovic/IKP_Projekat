@@ -17,7 +17,7 @@
 #pragma comment (lib, "AdvApi32.lib")
 
 #define BUFFER_SIZE 256
-#define CLIENT_NAME_LEN 5 
+#define CLIENT_NAME_LEN 10 
 #define SERVER_PORT 6069
 
 static int worker_count = 0;
@@ -94,9 +94,77 @@ DWORD WINAPI worker_read(LPVOID param) {
             printf("[WORKER READ] Worker sent: %s.\n", dataBuffer);
 
             char clientName[CLIENT_NAME_LEN];
-            //strncpy()
+            memset(clientName, 0, sizeof(clientName));
 
-            //client_thread* lookup_client(char* name);
+            char dataBuffer2[BUFFER_SIZE];
+            memcpy(dataBuffer2, dataBuffer, strlen(dataBuffer));
+
+            dataBuffer2[iResult] = '\0';
+
+            sscanf(dataBuffer, "%[^:]", clientName);
+            
+
+            client_thread* foundClient = lookup_client(clientName);
+
+            iResult = send(foundClient->acceptedSocket, dataBuffer2, strlen(dataBuffer2), 0);
+            memset(dataBuffer2, 0, BUFFER_SIZE);
+            memset(clientName, 0, sizeof(clientName));
+
+            if (iResult != SOCKET_ERROR)	// Check if message is successfully received
+            {
+                printf("[WORKER]: returned to client: %s\n", dataBuffer);
+
+
+                //vracanje iz liste zauzetih na kraj liste slobodnih ???proveri
+                EnterCriticalSection(&free_workers_list->cs);
+                EnterCriticalSection(&busy_workers_list->cs);
+
+                node* previous = find_previous_node(busy_workers_list, new_node);
+
+                if (previous != NULL) {
+
+                    previous->next = new_node->next;
+
+                }
+                else {
+
+                    if (new_node->next == NULL) {
+                        busy_workers_list->head = NULL;
+                        busy_workers_list->tail = NULL;
+                    }
+                    else {
+                        busy_workers_list->head = new_node->next;
+                    }
+
+                }
+
+                if (free_workers_list->tail != NULL) {
+                    free_workers_list->tail->next = new_node;
+                }
+
+                free_workers_list->tail = new_node;
+
+                if (free_workers_list->head == NULL) {
+                    free_workers_list->head = new_node;
+                }
+
+                LeaveCriticalSection(&free_workers_list->cs);
+                LeaveCriticalSection(&busy_workers_list->cs);
+
+                break;
+            }
+            else	// There was an error during recv
+            {
+
+                if (WSAGetLastError() == WSAEWOULDBLOCK) {
+                    continue;
+                }
+                else {
+                    printf("[WORKER]: send to client failed with error: %d\n", WSAGetLastError());
+                    break;
+                }
+
+            }
 
             // Send the message to the client...
 
@@ -232,6 +300,8 @@ DWORD WINAPI worker_listener(LPVOID param) {
         new_node->next = NULL;
         
         insert_last_node(new_node, free_workers_list);
+
+
        
         
         //Put accepted socket/thread in the FREE LIST

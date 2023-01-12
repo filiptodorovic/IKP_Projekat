@@ -67,6 +67,13 @@ DWORD WINAPI client_read_write(LPVOID param) {
             memcpy(toEnqueue, clientName, CLIENT_NAME_LEN);
             memcpy((toEnqueue + CLIENT_NAME_LEN), dataBuffer, strlen(dataBuffer) + 1);
 
+            /*
+            memset(toEnqueue, 0, sizeof(toEnqueue));
+            memcpy(toEnqueue, clientName, strlen(clientName));
+            memcpy(toEnqueue + strlen(clientName), ": ", 2);
+            memcpy(toEnqueue + strlen(clientName) + 2, dataBuffer, strlen(dataBuffer)+1);
+            */
+
             enqueue(toEnqueue);
 
         }

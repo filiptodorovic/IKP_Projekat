@@ -17,6 +17,42 @@ list* free_workers_list;
 queue* q;
 static unsigned int worker_process_count = 0;
 
+STARTUPINFO startup_info;
+PROCESS_INFORMATION process_info;
+
+void create_new_worker_process() {
+
+    memset(&startup_info, 0, sizeof(STARTUPINFO));
+    startup_info.cb = sizeof(STARTUPINFO);
+    startup_info.dwFlags = STARTF_USESHOWWINDOW;
+    startup_info.wShowWindow = SW_SHOW;
+
+    memset(&process_info, 0, sizeof(PROCESS_INFORMATION));
+    TCHAR buff[100];
+    GetCurrentDirectory(100, buff);
+    wcscat(buff, L"\\..\\x64\\Debug\\Worker.exe");
+    TCHAR cmd[] = L"Worker.exe";
+    if (!CreateProcess(
+        buff,          // LPCTSTR lpApplicationName
+        cmd,                // LPTSTR lpCommandLine
+        NULL,                // LPSECURITY_ATTRIBUTES lpProcessAttributes
+        NULL,                // LPSECURITY_ATTRIBUTES lpThreadAttributes
+        FALSE,               // BOOL bInheritHandles
+        NORMAL_PRIORITY_CLASS,    // DWORD dwCreationFlags
+        NULL,                // LPVOID lpEnvironment
+        NULL,                // LPCTSTR lpCurrentDirectory
+        &startup_info,       // LPSTARTUPINFO lpStartupInfo
+        &process_info        // LPPROCESS_INFORMATION lpProcessInformation
+    )) {
+
+        printf("CreateProcess failed (%d).\n", GetLastError());
+    }
+
+    ShowWindow(0, SW_SHOW);
+}
+
+
+
 DWORD WINAPI check_percentage(LPVOID param) {
     while (true) {
         Sleep(3000);
@@ -40,6 +76,7 @@ DWORD WINAPI check_percentage(LPVOID param) {
         else if (fullfillness > 70) {
             // open new worker processes
             //CreateProcess();
+            create_new_worker_process();
         }
     }
 }
@@ -60,40 +97,32 @@ DWORD WINAPI dispatcher(LPVOID param) {
             strcpy(first->msgBuffer, message);
             ReleaseSemaphore(first->msgSemaphore, 1, NULL);
 
+
+            //prebacivanje sa pocetka liste slobodnih na pocetak liste zauzetih ???proveri
+            EnterCriticalSection(&free_workers_list->cs);
+            EnterCriticalSection(&busy_workers_list->cs);
+
+            free_workers_list->head = first->next;
+            first->next = busy_workers_list->head;
+
+            if (busy_workers_list->head == NULL) {
+                busy_workers_list->head = first;
+                busy_workers_list->tail = first;
+            }
+            else {
+                busy_workers_list->head = first;
+            }            
+
+            LeaveCriticalSection(&free_workers_list->cs);
+            LeaveCriticalSection(&busy_workers_list->cs);
+
+
         }
     }
     return 0;
 }
 
 
-STARTUPINFO startup_info;
-PROCESS_INFORMATION process_info;
-
-void create_new_worker_process() {
-    
-    memset(&startup_info, 0, sizeof(STARTUPINFO));
-    startup_info.cb = sizeof(STARTUPINFO);
-    memset(&process_info, 0, sizeof(PROCESS_INFORMATION));
-    TCHAR buff[100];
-    GetCurrentDirectory(100, buff);
-    wcscat(buff, L"\\..\\Debug\\Worker.exe");
-    TCHAR cmd[] = L"Worker.exe";
-    if (!CreateProcess(
-        buff,          // LPCTSTR lpApplicationName
-        cmd,                // LPTSTR lpCommandLine
-        NULL,                // LPSECURITY_ATTRIBUTES lpProcessAttributes
-        NULL,                // LPSECURITY_ATTRIBUTES lpThreadAttributes
-        FALSE,               // BOOL bInheritHandles
-        CREATE_NO_WINDOW,    // DWORD dwCreationFlags
-        NULL,                // LPVOID lpEnvironment
-        NULL,                // LPCTSTR lpCurrentDirectory
-        &startup_info,       // LPSTARTUPINFO lpStartupInfo
-        &process_info        // LPPROCESS_INFORMATION lpProcessInformation
-    )) {
-
-        printf("CreateProcess failed (%d).\n", GetLastError());
-    }
-}
 
 //WaitForSingleObject(process_info.hProcess, INFINITE);
 //CloseHandle(process_info.hProcess);
@@ -124,7 +153,7 @@ int main() {
     hListenerWorker = CreateThread(NULL, 0, &worker_listener, (LPVOID)0, 0, &listenerWorkerID);
     hDispatcher = CreateThread(NULL, 0, &dispatcher, (LPVOID)0, 0, &dispatcherID);
 
-    create_new_worker_process();
+    //create_new_worker_process();
     worker_process_count++;
 
     //wait for listener to finish

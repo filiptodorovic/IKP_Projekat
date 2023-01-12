@@ -92,6 +92,33 @@ node* delete_first_node(list* l) {
 
 }
 
+/*
+node* find_node(list* lst, SOCKET sock) {
+	node* current = lst->head;
+	while (current != NULL) {
+		if (current->acceptedSocket == sock) {
+			return current;
+		}
+		current = current->next;
+	}
+	return NULL;
+}*/
+
+node* find_previous_node(list* lst, node* target) {
+	node* current = NULL;
+	EnterCriticalSection(&lst->cs);
+	current = lst->head;
+	while (current != NULL) {
+		if (current->next == target) {
+			LeaveCriticalSection(&lst->cs);
+			return current;
+		}
+		current = current->next;
+	}
+	LeaveCriticalSection(&lst->cs);
+	return NULL;
+}
+
 void print_list(list* l) {
 	EnterCriticalSection(&l->cs);
 	printf("LIST: \n");

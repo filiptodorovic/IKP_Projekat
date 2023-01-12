@@ -83,12 +83,20 @@ int main()
             printf("[WORKER]: load balancer sent: %s.\n", dataBuffer);
             // Send message to server using connected socket
 
+            char client[20];
+            sscanf(dataBuffer, "%[^:]", client);
+
+            char dataBuffer2[BUFFER_SIZE];
+            memset(dataBuffer2, 0, BUFFER_SIZE);
+            sprintf(dataBuffer2, "%s", client);
+
             while (true) {
-                sprintf(dataBuffer, "%s", "Success");
-                iResult = send(connectSocket, dataBuffer, (int)strlen(dataBuffer), 0);
+                sprintf(dataBuffer2 + strlen(client), "%s", ": Success");
+                
+                iResult = send(connectSocket, dataBuffer2, (int)strlen(dataBuffer2), 0);
                 if (iResult != SOCKET_ERROR)	// Check if message is successfully received
                 {
-                    printf("[WORKER]: returned to load balancer %s\n", dataBuffer);
+                    printf("[WORKER]: returned to load balancer %s\n", dataBuffer2);
                     break;
                 }
                 else	// There was an error during recv
