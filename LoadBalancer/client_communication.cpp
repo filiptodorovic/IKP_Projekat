@@ -103,7 +103,7 @@ DWORD WINAPI client_read_write(LPVOID param) {
 
     } while (true);
 
-    
+    return 0;
 }
 
 

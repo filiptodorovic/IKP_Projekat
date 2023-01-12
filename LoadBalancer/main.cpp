@@ -153,7 +153,7 @@ int main() {
     hListenerWorker = CreateThread(NULL, 0, &worker_listener, (LPVOID)0, 0, &listenerWorkerID);
     hDispatcher = CreateThread(NULL, 0, &dispatcher, (LPVOID)0, 0, &dispatcherID);
 
-    //create_new_worker_process();
+    create_new_worker_process();
     worker_process_count++;
 
     //wait for listener to finish

@@ -106,7 +106,7 @@ DWORD WINAPI worker_read(LPVOID param) {
 
             client_thread* foundClient = lookup_client(clientName);
 
-            iResult = send(foundClient->acceptedSocket, dataBuffer2, strlen(dataBuffer2), 0);
+            iResult = send(foundClient->acceptedSocket, dataBuffer2, (int)strlen(dataBuffer2), 0);
             memset(dataBuffer2, 0, BUFFER_SIZE);
             memset(clientName, 0, sizeof(clientName));
 
