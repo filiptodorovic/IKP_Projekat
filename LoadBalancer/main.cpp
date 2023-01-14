@@ -83,7 +83,7 @@ DWORD WINAPI check_percentage(LPVOID param) {
 
 DWORD WINAPI dispatcher(LPVOID param) {
 
-    char message[256];
+    char message[266];
 
     while (true) {
         Sleep(3000);
@@ -94,7 +94,8 @@ DWORD WINAPI dispatcher(LPVOID param) {
             node* first = free_workers_list->head;
             if (free_workers_list->head != NULL)
             {
-                strcpy(first->msgBuffer, message);
+                
+                memcpy(first->msgBuffer, message,CLIENT_NAME_LEN+256);
                 ReleaseSemaphore(first->msgSemaphore, 1, NULL);
 
                 move_first_node(busy_workers_list, free_workers_list);

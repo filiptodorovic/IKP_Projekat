@@ -18,7 +18,8 @@
 
 #define SERVER_IP_ADDRESS "127.0.0.1"
 #define SERVER_PORT 6069
-#define BUFFER_SIZE 256
+#define BUFFER_SIZE 266
+#define CLIENT_NAME_LEN 10
 
 // TCP client that use blocking sockets
 int main()
@@ -83,15 +84,12 @@ int main()
             printf("[WORKER]: load balancer sent: %s.\n", dataBuffer);
             // Send message to server using connected socket
 
-            char client[20];
-            sscanf(dataBuffer, "%[^:]", client);
 
-            char dataBuffer2[BUFFER_SIZE];
-            memset(dataBuffer2, 0, BUFFER_SIZE);
-            sprintf(dataBuffer2, "%s", client);
+            char dataBuffer2[BUFFER_SIZE + 9]; //for Success
 
             while (true) {
-                sprintf(dataBuffer2 + strlen(client), "%s", ": Success");
+                strcpy(dataBuffer2, "Success->");
+                strcpy(dataBuffer2 + strlen(dataBuffer2), dataBuffer);
                 
                 iResult = send(connectSocket, dataBuffer2, (int)strlen(dataBuffer2), 0);
                 if (iResult != SOCKET_ERROR)	// Check if message is successfully received

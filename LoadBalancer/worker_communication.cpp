@@ -10,6 +10,7 @@
 #include "queue.h"
 #include "hash_map.h"
 #include "list.h"
+#include <string.h>
 
 #pragma warning(disable:4996)
 #pragma comment (lib, "Ws2_32.lib")
@@ -43,8 +44,13 @@ DWORD WINAPI worker_write(LPVOID param) {
 
 
         char* msg = new_node->msgBuffer;
+        char messageBuff[266];
+        memset(messageBuff, 0, 266);
+        strcpy(messageBuff, msg + CLIENT_NAME_LEN);
+        strcpy(messageBuff+ strlen(messageBuff), ":");
+        strcpy(messageBuff + strlen(messageBuff), new_node->msgBuffer);
 
-        iResult = send(acceptedSocket, msg, (int)strlen(msg), 0);
+        iResult = send(acceptedSocket, messageBuff, strlen(messageBuff), 0);
 
         if (iResult != SOCKET_ERROR)
         {
@@ -94,15 +100,11 @@ DWORD WINAPI worker_read(LPVOID param) {
             printf("[WORKER READ] Worker sent: %s.\n", dataBuffer);
 
             char clientName[CLIENT_NAME_LEN];
-            memset(clientName, 0, sizeof(clientName));
+            strcpy(clientName, strstr(dataBuffer, "Client"));
+            printf("%s\n",clientName );
 
-            char dataBuffer2[BUFFER_SIZE];
-            memcpy(dataBuffer2, dataBuffer, strlen(dataBuffer));
-
-            dataBuffer2[iResult] = '\0';
-
-            sscanf(dataBuffer, "%[^:]", clientName);
-            
+            char dataBuffer2[BUFFER_SIZE+CLIENT_NAME_LEN];
+            strcpy(dataBuffer2, dataBuffer);
 
             client_thread* foundClient = lookup_client(clientName);
 
@@ -292,7 +294,7 @@ DWORD WINAPI worker_listener(LPVOID param) {
 
         node* new_node = (node*)malloc(sizeof(node));
         new_node->msgSemaphore = CreateSemaphore(0, 0, 1, NULL);
-        new_node->msgBuffer = (char*)malloc(sizeof(char) * 256);
+        new_node->msgBuffer = (char*)malloc(sizeof(char) * 266);
         new_node->acceptedSocket = acceptedSocket;
 
         unsigned long non_blocking = 1;

@@ -89,6 +89,7 @@ node* delete_first_node(list* l) {
 	}
 	else {
 		printf("List is empty, no element at the beginning!\n");
+		LeaveCriticalSection(&l->cs);
 		return NULL;
 	}
 
