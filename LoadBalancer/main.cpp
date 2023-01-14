@@ -30,7 +30,7 @@ void create_new_worker_process() {
     memset(&process_info, 0, sizeof(PROCESS_INFORMATION));
     TCHAR buff[100];
     GetCurrentDirectory(100, buff);
-    wcscat(buff, L"\\..\\x64\\Debug\\Worker.exe");
+    wcscat(buff, L"\\..\\Debug\\Worker.exe");
     TCHAR cmd[] = L"Worker.exe";
     if (!CreateProcess(
         buff,          // LPCTSTR lpApplicationName
@@ -92,31 +92,14 @@ DWORD WINAPI dispatcher(LPVOID param) {
             dequeue(message);
 
             node* first = free_workers_list->head;
+            if (free_workers_list->head != NULL)
+            {
+                strcpy(first->msgBuffer, message);
+                ReleaseSemaphore(first->msgSemaphore, 1, NULL);
 
+                move_first_node(busy_workers_list, free_workers_list);
 
-            strcpy(first->msgBuffer, message);
-            ReleaseSemaphore(first->msgSemaphore, 1, NULL);
-
-
-            //prebacivanje sa pocetka liste slobodnih na pocetak liste zauzetih ???proveri
-            EnterCriticalSection(&free_workers_list->cs);
-            EnterCriticalSection(&busy_workers_list->cs);
-
-            free_workers_list->head = first->next;
-            first->next = busy_workers_list->head;
-
-            if (busy_workers_list->head == NULL) {
-                busy_workers_list->head = first;
-                busy_workers_list->tail = first;
             }
-            else {
-                busy_workers_list->head = first;
-            }            
-
-            LeaveCriticalSection(&free_workers_list->cs);
-            LeaveCriticalSection(&busy_workers_list->cs);
-
-
         }
     }
     return 0;

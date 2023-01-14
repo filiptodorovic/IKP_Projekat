@@ -114,10 +114,17 @@ DWORD WINAPI worker_read(LPVOID param) {
             {
                 printf("[WORKER]: returned to client: %s\n", dataBuffer);
 
+                // we will kick out the node from the busy list
+                delete_node(new_node, busy_workers_list);
+
+                // and isert it to the end of the free worker list
+                insert_last_node(new_node, free_workers_list);
 
                 //vracanje iz liste zauzetih na kraj liste slobodnih ???proveri
-                EnterCriticalSection(&free_workers_list->cs);
+               /* EnterCriticalSection(&free_workers_list->cs);
                 EnterCriticalSection(&busy_workers_list->cs);
+
+                put_done_node_to_free(new_node, busy_workers_list, free_workers_list);
 
                 node* previous = find_previous_node(busy_workers_list, new_node);
 
@@ -149,7 +156,7 @@ DWORD WINAPI worker_read(LPVOID param) {
                 }
 
                 LeaveCriticalSection(&free_workers_list->cs);
-                LeaveCriticalSection(&busy_workers_list->cs);
+                LeaveCriticalSection(&busy_workers_list->cs);*/
 
                 break;
             }
