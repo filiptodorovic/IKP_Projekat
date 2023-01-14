@@ -89,12 +89,12 @@ DWORD WINAPI dispatcher(LPVOID param) {
         Sleep(3000);
 
         if (!is_queue_empty()){
-            dequeue(message);
 
             node* first = free_workers_list->head;
             if (free_workers_list->head != NULL)
             {
-                
+                dequeue(message);
+
                 memcpy(first->msgBuffer, message,CLIENT_NAME_LEN+256);
                 ReleaseSemaphore(first->msgSemaphore, 1, NULL);
 
@@ -137,7 +137,7 @@ int main() {
     hListenerWorker = CreateThread(NULL, 0, &worker_listener, (LPVOID)0, 0, &listenerWorkerID);
     hDispatcher = CreateThread(NULL, 0, &dispatcher, (LPVOID)0, 0, &dispatcherID);
 
-    create_new_worker_process();
+    //create_new_worker_process();
     worker_process_count++;
 
     //wait for listener to finish

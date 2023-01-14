@@ -54,7 +54,7 @@ DWORD WINAPI worker_write(LPVOID param) {
 
         if (iResult != SOCKET_ERROR)
         {
-            printf("[WORKER WRITE]: sent: %s.\n", msg);
+            printf("[WORKER WRITE]: sent: %s.\n", messageBuff);
             if (strcmp(msg, "exit") == 0) {
 
                 printf("[WORKER WRITE]: Worker process signig off.\n");
@@ -107,72 +107,36 @@ DWORD WINAPI worker_read(LPVOID param) {
             strcpy(dataBuffer2, dataBuffer);
 
             client_thread* foundClient = lookup_client(clientName);
+            if (foundClient) {
 
-            iResult = send(foundClient->acceptedSocket, dataBuffer2, (int)strlen(dataBuffer2), 0);
-            memset(dataBuffer2, 0, BUFFER_SIZE);
-            memset(clientName, 0, sizeof(clientName));
+                iResult = send(foundClient->acceptedSocket, dataBuffer2, (int)strlen(dataBuffer2), 0);
+                memset(dataBuffer2, 0, BUFFER_SIZE);
+                memset(clientName, 0, sizeof(clientName));
 
-            if (iResult != SOCKET_ERROR)	// Check if message is successfully received
-            {
-                printf("[WORKER]: returned to client: %s\n", dataBuffer);
+                if (iResult != SOCKET_ERROR)	// Check if message is successfully received
+                {
+                    printf("[WORKER]: returned to client: %s\n", dataBuffer);
 
-                // we will kick out the node from the busy list
-                delete_node(new_node, busy_workers_list);
+                    // we will kick out the node from the busy list
+                    delete_node(new_node, busy_workers_list);
 
-                // and isert it to the end of the free worker list
-                insert_last_node(new_node, free_workers_list);
+                    // and isert it to the end of the free worker list
+                    insert_last_node(new_node, free_workers_list);
 
-                //vracanje iz liste zauzetih na kraj liste slobodnih ???proveri
-               /* EnterCriticalSection(&free_workers_list->cs);
-                EnterCriticalSection(&busy_workers_list->cs);
-
-                put_done_node_to_free(new_node, busy_workers_list, free_workers_list);
-
-                node* previous = find_previous_node(busy_workers_list, new_node);
-
-                if (previous != NULL) {
-
-                    previous->next = new_node->next;
-
-                }
-                else {
-
-                    if (new_node->next == NULL) {
-                        busy_workers_list->head = NULL;
-                        busy_workers_list->tail = NULL;
-                    }
-                    else {
-                        busy_workers_list->head = new_node->next;
-                    }
-
-                }
-
-                if (free_workers_list->tail != NULL) {
-                    free_workers_list->tail->next = new_node;
-                }
-
-                free_workers_list->tail = new_node;
-
-                if (free_workers_list->head == NULL) {
-                    free_workers_list->head = new_node;
-                }
-
-                LeaveCriticalSection(&free_workers_list->cs);
-                LeaveCriticalSection(&busy_workers_list->cs);*/
-
-                break;
-            }
-            else	// There was an error during recv
-            {
-
-                if (WSAGetLastError() == WSAEWOULDBLOCK) {
                     continue;
                 }
-                else {
-                    printf("[WORKER]: send to client failed with error: %d\n", WSAGetLastError());
-                    break;
-                }
+                else	// There was an error during recv
+                {
 
+                    if (WSAGetLastError() == WSAEWOULDBLOCK) {
+                        continue;
+                    }
+                    else {
+                        printf("[WORKER]: send to client failed with error: %d\n", WSAGetLastError());
+                        break;
+                    }
+
+                }
             }
 
             // Send the message to the client...
