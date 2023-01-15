@@ -45,12 +45,26 @@ DWORD WINAPI worker_write(LPVOID param) {
 
         char* msg = new_node->msgBuffer;
         char messageBuff[266];
-        memset(messageBuff, 0, 266);
-        strcpy(messageBuff, msg + CLIENT_NAME_LEN);
-        strcpy(messageBuff+ strlen(messageBuff), ":");
-        strcpy(messageBuff + strlen(messageBuff), new_node->msgBuffer);
 
-        iResult = send(acceptedSocket, messageBuff, strlen(messageBuff), 0);
+        if (strcmp(msg, "exit") == 0) {
+
+            iResult = send(acceptedSocket, msg, strlen(msg), 0);
+
+        }
+        else {
+            
+            
+            memset(messageBuff, 0, 266);
+            strcpy(messageBuff, msg + CLIENT_NAME_LEN);
+            strcpy(messageBuff + strlen(messageBuff), ":");
+            strcpy(messageBuff + strlen(messageBuff), new_node->msgBuffer);
+
+            iResult = send(acceptedSocket, messageBuff, strlen(messageBuff), 0);
+        } 
+
+        
+
+        
 
         if (iResult != SOCKET_ERROR)
         {
@@ -100,10 +114,13 @@ DWORD WINAPI worker_read(LPVOID param) {
             printf("[WORKER READ] Worker sent: %s.\n", dataBuffer);
 
             char clientName[CLIENT_NAME_LEN];
-            strcpy(clientName, strstr(dataBuffer, "Client"));
+            memset(clientName, 0, CLIENT_NAME_LEN);
+            //strcpy(clientName, strstr(dataBuffer, "Client"));
+            sscanf(dataBuffer, "Success->%*[^:]:%s", clientName);
             printf("%s\n",clientName );
 
             char dataBuffer2[BUFFER_SIZE+CLIENT_NAME_LEN];
+            //if(strcmp(dataBuffer, "exit") == 0)
             strcpy(dataBuffer2, dataBuffer);
 
             client_thread* foundClient = lookup_client(clientName);
@@ -156,6 +173,7 @@ DWORD WINAPI worker_read(LPVOID param) {
         }
 
     } while (true);
+
     return 0;
 }
 

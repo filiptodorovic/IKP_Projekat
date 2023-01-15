@@ -78,6 +78,23 @@ int main()
         iResult = recv(connectSocket, dataBuffer, (int)strlen(dataBuffer), 0);
         if (iResult != SOCKET_ERROR)	// Check if message is successfully received
         {
+            
+
+            int msgLen = (int)dataBuffer[0];
+            char dataBuffer2[BUFFER_SIZE + 9]; //for Success
+            memset(dataBuffer2, 0, BUFFER_SIZE + 9);
+            int iResult2 = 0;
+
+            do {
+
+                iResult2 = recv(connectSocket, dataBuffer2, (int)strlen(dataBuffer2), 0);
+                //strcpy(dataBuffer + iResult, dataBuffer2);
+                memcpy(dataBuffer, dataBuffer2, (int)strlen(dataBuffer2));
+
+                iResult += iResult2;
+
+            } while (iResult != msgLen);
+
             dataBuffer[iResult] = '\0';
 
             // Log message text
@@ -85,7 +102,10 @@ int main()
             // Send message to server using connected socket
 
 
-            char dataBuffer2[BUFFER_SIZE + 9]; //for Success
+            if(strcmp(dataBuffer, "exit") == 0)
+                _exit(0);
+
+            memset(dataBuffer2, 0, BUFFER_SIZE + 9);
 
             while (true) {
                 strcpy(dataBuffer2, "Success->");
