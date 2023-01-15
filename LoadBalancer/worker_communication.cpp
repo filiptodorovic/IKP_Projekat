@@ -50,12 +50,13 @@ DWORD WINAPI worker_write(LPVOID param) {
         char msgLen = strlen(msg->clientName) + strlen(msg->bufferNoName) +1+1; // client+message+delimiter+messageLen
 
         memset(messageBuff, 0, BUFFER_SIZE);// zero the buffer
-        memset(messageBuff, msgLen, 1); // first byte is the length of the message
-        strcpy(messageBuff+1, msg->clientName);// write the client name
-        strcpy(messageBuff + strlen(messageBuff), ":");// delimieter
-        strcpy(messageBuff + strlen(messageBuff), new_node->msgStruct->bufferNoName); // write the messge
 
-        iResult = send(acceptedSocket, messageBuff, strlen(messageBuff), 0); // [messageLen][ClientName][delimiter(:)][message]
+        char message[BUFFER_SIZE + 1];
+        sprintf(message, "%s:%s", msg->clientName, msg->bufferNoName);
+        memset(messageBuff, msgLen, 1); // first byte is the length of the message
+        strcpy(messageBuff + 1, message);
+
+        iResult = send(acceptedSocket, messageBuff, strlen(messageBuff+1)+1, 0); // [messageLen][ClientName][delimiter(:)][message]
 
         if (iResult != SOCKET_ERROR)
         {
