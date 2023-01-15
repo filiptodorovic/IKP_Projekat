@@ -123,12 +123,12 @@ DWORD WINAPI worker_read(LPVOID param) {
             memset(clientName, 0, CLIENT_NAME_LEN);
             //strcpy(clientName, strstr(dataBuffer, "Client"));
             int a;
-            sscanf(dataBuffer+1, "Success->%*[^:]:%s",&a, clientName);
+            sscanf(dataBuffer+1, "Success->%[^:]:",clientName);
             printf("%s\n",clientName );
 
             char bufferForClient[BUFFER_SIZE+CLIENT_NAME_LEN];
             //if(strcmp(dataBuffer, "exit") == 0)
-            strcpy(bufferForClient, dataBuffer+1);// ommit the message length
+            strcpy(bufferForClient, dataBuffer);
 
             client_thread* foundClient = lookup_client(clientName);
             if (foundClient) {

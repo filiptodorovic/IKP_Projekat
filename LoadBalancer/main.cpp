@@ -118,10 +118,8 @@ DWORD WINAPI dispatcher(LPVOID param) {
             {
                 dequeue(&dequeuedMessageStruct);
 
-                EnterCriticalSection(&free_workers_list->cs);
                 first->msgStruct=dequeuedMessageStruct;
                 ReleaseSemaphore(first->msgSemaphore, 1, NULL);
-                LeaveCriticalSection(&free_workers_list->cs);
 
                 move_first_node(busy_workers_list, free_workers_list);
 
