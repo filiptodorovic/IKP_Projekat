@@ -26,7 +26,7 @@ DWORD WINAPI client_read(LPVOID param) {
     do
     {
 
-        int iResult = recv(connectedSocket, dataBuffer, (int)strlen(dataBuffer), 0);
+        int iResult = recv(connectedSocket, dataBuffer, BUFFER_SIZE, 0);
 
         if (iResult != SOCKET_ERROR) {
 

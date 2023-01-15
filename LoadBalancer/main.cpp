@@ -30,7 +30,8 @@ void create_new_worker_process() {
     memset(&process_info, 0, sizeof(PROCESS_INFORMATION));
     TCHAR buff[100];
     GetCurrentDirectory(100, buff);
-    wcscat(buff, L"\\..\\x64\\Debug\\Worker.exe");
+    wcscat(buff, L"\\..\\Debug\\Worker.exe");
+    //wcscat(buff, L"\\..\\x64\\Debug\\Worker.exe");
     TCHAR cmd[] = L"Worker.exe";
     if (!CreateProcess(
         buff,          // LPCTSTR lpApplicationName
@@ -97,7 +98,6 @@ DWORD WINAPI check_percentage(LPVOID param) {
             // open new worker processes
             //CreateProcess();
             create_new_worker_process();
-            worker_process_count++;
         }
     }
 }
@@ -162,8 +162,7 @@ int main() {
     hListenerWorker = CreateThread(NULL, 0, &worker_listener, (LPVOID)0, 0, &listenerWorkerID);
     hDispatcher = CreateThread(NULL, 0, &dispatcher, (LPVOID)0, 0, &dispatcherID);
 
-    //create_new_worker_process();
-    worker_process_count++;
+    create_new_worker_process();
 
     //wait for listener to finish
     if (hListenerClient)

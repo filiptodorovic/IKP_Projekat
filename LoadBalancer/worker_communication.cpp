@@ -79,9 +79,6 @@ DWORD WINAPI worker_write(LPVOID param) {
             }
 
         }
-        // empty the message buffer
-        memset(msg->clientName, 0,CLIENT_NAME_LEN);
-        memset(msg->bufferNoName, 0,BUFFER_WITHOUT_NAME);
        
     }
     return 0;
@@ -109,7 +106,7 @@ DWORD WINAPI worker_read(LPVOID param) {
 
             while (iResult != msgLen) {
 
-                iResult2 = recv(acceptedSocket, messagePart, (int)strlen(messagePart), 0);
+                iResult2 = recv(acceptedSocket, messagePart, BUFFER_SIZE, 0);
                 //strcpy(dataBuffer + iResult, dataBuffer2);
                 memcpy(dataBuffer + strlen(dataBuffer + 1) + 1, messagePart, (int)strlen(messagePart));
 

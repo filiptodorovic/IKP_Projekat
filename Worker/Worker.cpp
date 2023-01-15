@@ -78,8 +78,7 @@ int main()
     const char* successStr= "Success->";
 
     while (true) {
-
-        iResult = recv(connectSocket, dataBuffer, (int)strlen(dataBuffer), 0);
+        iResult = recv(connectSocket, dataBuffer, BUFFER_SIZE, 0);
         if (iResult != SOCKET_ERROR)	// Check if message is successfully received
         {
             
