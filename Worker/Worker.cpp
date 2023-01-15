@@ -93,7 +93,7 @@ int main()
 
                 iResult2 = recv(connectSocket, dataBuffer2, (int)strlen(dataBuffer2), 0);
                 //strcpy(dataBuffer + iResult, dataBuffer2);
-                memcpy(dataBuffer, dataBuffer2, (int)strlen(dataBuffer2));
+                memcpy(dataBuffer+strlen(dataBuffer+1)+1, dataBuffer2, (int)strlen(dataBuffer2));
 
                 iResult += iResult2;
 
@@ -115,7 +115,7 @@ int main()
                 
                 strcpy(dataBuffer2 + 1, successStr);
                 strcpy(dataBuffer2+1 + strlen(dataBuffer2+1), dataBuffer+1);
-                char messageLen = strlen(dataBuffer2 + 1);
+                char messageLen = strlen(dataBuffer2 + 1)+1;
                 memset(dataBuffer2, messageLen, 1);//put the message size on the first byte 9+message_len
 
 

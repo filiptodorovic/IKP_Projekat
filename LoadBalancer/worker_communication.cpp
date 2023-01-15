@@ -90,17 +90,31 @@ DWORD WINAPI worker_read(LPVOID param) {
     node* new_node = (node*)param;
     SOCKET acceptedSocket = new_node->acceptedSocket;
 
-    char dataBuffer[BUFFER_SIZE];
+    char dataBuffer[BUFFER_SIZE+9+1];
     int worker_num = worker_count++;
 
     //check if we got data from client or EXIT signal
     //OR if we got a message from worker
     do
     {
+
         int iResult = recv(acceptedSocket, dataBuffer, BUFFER_SIZE, 0);
+        int msgLen = (int)dataBuffer[0];
 
         if(iResult != SOCKET_ERROR)
         {
+            int iResult2 = 0;
+            char messagePart[BUFFER_SIZE];//delimiter + success
+
+            while (iResult != msgLen) {
+
+                iResult2 = recv(acceptedSocket, messagePart, (int)strlen(messagePart), 0);
+                //strcpy(dataBuffer + iResult, dataBuffer2);
+                memcpy(dataBuffer + strlen(dataBuffer + 1) + 1, messagePart, (int)strlen(messagePart));
+
+                iResult += iResult2;
+            }
+
             dataBuffer[iResult] = '\0';
 
             printf("[WORKER READ] Worker sent: %s.\n", dataBuffer);
@@ -108,18 +122,19 @@ DWORD WINAPI worker_read(LPVOID param) {
             char clientName[CLIENT_NAME_LEN];
             memset(clientName, 0, CLIENT_NAME_LEN);
             //strcpy(clientName, strstr(dataBuffer, "Client"));
-            sscanf(dataBuffer, "Success->%*[^:]:%s", clientName);
+            int a;
+            sscanf(dataBuffer+1, "Success->%*[^:]:%s",&a, clientName);
             printf("%s\n",clientName );
 
-            char dataBuffer2[BUFFER_SIZE+CLIENT_NAME_LEN];
+            char bufferForClient[BUFFER_SIZE+CLIENT_NAME_LEN];
             //if(strcmp(dataBuffer, "exit") == 0)
-            strcpy(dataBuffer2, dataBuffer);
+            strcpy(bufferForClient, dataBuffer+1);// ommit the message length
 
             client_thread* foundClient = lookup_client(clientName);
             if (foundClient) {
 
-                iResult = send(foundClient->acceptedSocket, dataBuffer2, (int)strlen(dataBuffer2), 0);
-                memset(dataBuffer2, 0, BUFFER_SIZE);
+                iResult = send(foundClient->acceptedSocket, bufferForClient, (int)strlen(bufferForClient), 0);
+                memset(bufferForClient, 0, BUFFER_SIZE);
                 memset(clientName, 0, sizeof(clientName));
 
                 if (iResult != SOCKET_ERROR)	// Check if message is successfully received
