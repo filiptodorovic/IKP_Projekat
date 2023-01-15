@@ -1,7 +1,6 @@
 #include "queue.h"
 #define  _CRT_SECURE_NO_WARNINGS
 #pragma warning(disable:4996)
-#include "hash_map.h"
 
 HANDLE hSemaporeQueueEmpty;
 HANDLE hSemaporeQueueFull;
@@ -18,7 +17,7 @@ void create_queue(int capacity) {
 	newQueue->currentSize = 0;
 
 	//create array of messages
-	newQueue->messageArray = (char**)malloc(sizeof(char*) * capacity);
+	newQueue->messageArray = (messageStruct**)malloc(sizeof(messageStruct*) * capacity);
 
 	for (int i = 0; i < capacity; i++) {
 		newQueue->messageArray[i] = NULL;
@@ -49,7 +48,7 @@ int get_capacity_queue() {
 	return q->capacity;
 }
 
-void enqueue(char* message) {
+void enqueue(messageStruct* messageArray) {
 	if (is_queue_full) {
 		WaitForSingleObject(hSemaporeQueueEmpty, INFINITE);
 	}
@@ -61,13 +60,10 @@ void enqueue(char* message) {
 		EnterCriticalSection(&q->cs);
 		//The front and rear will go around like in a circular buffer
 
-		int message_size = CLIENT_NAME_LEN + strlen(message + CLIENT_NAME_LEN)+1;
-
-		q->rear = (q->rear + 1) % q->capacity;
-		q->messageArray[q->rear] = (char*)malloc(message_size);
-
 		//Write at that place the new message
-		memcpy(q->messageArray[q->rear],message, message_size);
+		q->rear = (q->rear + 1) % q->capacity;
+		q->messageArray[q->rear] = messageArray;
+
 		q->currentSize++;
 		#ifdef DEBUG
 		print_queue();
@@ -78,7 +74,7 @@ void enqueue(char* message) {
 
 }
 
-void dequeue(char* message) {
+void dequeue(messageStruct** messageArray) {
 	//while (q->currentSize == 0) {
 	//	if (WaitForSingleObject(hSemaporeQueueFull, INFINITE) == WAIT_OBJECT_0 + 1)
 	//		break;//The queue is full, wait for elements to be dequeued
@@ -91,11 +87,9 @@ void dequeue(char* message) {
 	{
 		EnterCriticalSection(&q->cs);
 
-		int message_size = CLIENT_NAME_LEN + strlen(q->messageArray[q->front] + CLIENT_NAME_LEN) + 1;
 
-		memcpy(message, q->messageArray[q->front],message_size);
+		*messageArray = q->messageArray[q->front];
 
-		free(q->messageArray[q->front]);
 		q->messageArray[q->front] = NULL;
 		q->front = (q->front + 1) % q->capacity;
 		q->currentSize--;
@@ -127,12 +121,8 @@ void print_queue() {
 	for (int i = q->front; q->messageArray[i]!=NULL;) {
 		if (i == q->capacity)
 			i = i % q->capacity;
-		char clientName[CLIENT_NAME_LEN];
-		char message[BUFFER_SIZE];
 
-		memcpy(clientName, q->messageArray[i], CLIENT_NAME_LEN);
-
-		printf(" %s->%s", clientName, (q->messageArray[i] + CLIENT_NAME_LEN));
+		printf(" %s->%s", q->messageArray[i]->clientName, q->messageArray[i]->bufferNoName);
 		if (i == q->rear)break;
 		++i;
 	}

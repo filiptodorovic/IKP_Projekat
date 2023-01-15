@@ -18,7 +18,10 @@
 
 #define SERVER_IP_ADDRESS "127.0.0.1"
 #define SERVER_PORT 6069
-#define BUFFER_SIZE 266
+#define CLIENT_NAME_LEN 10
+#define BUFFER_WITHOUT_NAME 246
+#define BUFFER_SIZE CLIENT_NAME_LEN+BUFFER_WITHOUT_NAME
+#define RET_BUFFER_SIZE BUFFER_SIZE+9
 #define CLIENT_NAME_LEN 10
 
 // TCP client that use blocking sockets
@@ -72,6 +75,7 @@ int main()
 
     u_long non_blocking = 1;
     ioctlsocket(connectSocket, FIONBIO, &non_blocking);
+    const char* successStr= "Success->";
 
     while (true) {
 
@@ -81,11 +85,11 @@ int main()
             
 
             int msgLen = (int)dataBuffer[0];
-            char dataBuffer2[BUFFER_SIZE + 9]; //for Success
-            memset(dataBuffer2, 0, BUFFER_SIZE + 9);
+            char dataBuffer2[RET_BUFFER_SIZE]; //for Success
+            memset(dataBuffer2, 0, RET_BUFFER_SIZE);
             int iResult2 = 0;
 
-            do {
+            while (iResult != msgLen) {
 
                 iResult2 = recv(connectSocket, dataBuffer2, (int)strlen(dataBuffer2), 0);
                 //strcpy(dataBuffer + iResult, dataBuffer2);
@@ -93,23 +97,29 @@ int main()
 
                 iResult += iResult2;
 
-            } while (iResult != msgLen);
+            }
 
             dataBuffer[iResult] = '\0';
 
             // Log message text
-            printf("[WORKER]: load balancer sent: %s.\n", dataBuffer);
+            printf("[WORKER]: load balancer sent: %s.\n", dataBuffer+1);// move to the actual message
             // Send message to server using connected socket
 
 
-            if(strcmp(dataBuffer, "exit") == 0)
+            if(strcmp(dataBuffer+1, ":exit") == 0) //if the :exit is sent
                 _exit(0);
 
-            memset(dataBuffer2, 0, BUFFER_SIZE + 9);
+            memset(dataBuffer2, 0, RET_BUFFER_SIZE);
 
             while (true) {
-                strcpy(dataBuffer2, "Success->");
-                strcpy(dataBuffer2 + strlen(dataBuffer2), dataBuffer);
+                
+                strcpy(dataBuffer2 + 1, successStr);
+                strcpy(dataBuffer2+1 + strlen(dataBuffer2+1), dataBuffer+1);
+                char messageLen = strlen(dataBuffer2 + 1);
+                memset(dataBuffer2, messageLen, 1);//put the message size on the first byte 9+message_len
+
+
+
                 
                 iResult = send(connectSocket, dataBuffer2, (int)strlen(dataBuffer2), 0);
                 if (iResult != SOCKET_ERROR)	// Check if message is successfully received

@@ -43,35 +43,26 @@ DWORD WINAPI worker_write(LPVOID param) {
         //The queue is full, wait for elements to be dequeued
 
 
-        char* msg = new_node->msgBuffer;
-        char messageBuff[266];
+        messageStruct* msg = new_node->msgStruct;
+        char messageBuff[BUFFER_SIZE+1]; // 256+1 for :
 
-        if (strcmp(msg, "exit") == 0) {
 
-            iResult = send(acceptedSocket, msg, strlen(msg), 0);
+        char msgLen = strlen(msg->clientName) + strlen(msg->bufferNoName) +1+1; // client+message+delimiter+messageLen
 
-        }
-        else {
-            
-            
-            memset(messageBuff, 0, 266);
-            strcpy(messageBuff, msg + CLIENT_NAME_LEN);
-            strcpy(messageBuff + strlen(messageBuff), ":");
-            strcpy(messageBuff + strlen(messageBuff), new_node->msgBuffer);
+        memset(messageBuff, 0, BUFFER_SIZE);// zero the buffer
+        memset(messageBuff, msgLen, 1); // first byte is the length of the message
+        strcpy(messageBuff+1, msg->clientName);// write the client name
+        strcpy(messageBuff + strlen(messageBuff), ":");// delimieter
+        strcpy(messageBuff + strlen(messageBuff), new_node->msgStruct->bufferNoName); // write the messge
 
-            iResult = send(acceptedSocket, messageBuff, strlen(messageBuff), 0);
-        } 
-
-        
-
-        
+        iResult = send(acceptedSocket, messageBuff, strlen(messageBuff), 0); // [messageLen][ClientName][delimiter(:)][message]
 
         if (iResult != SOCKET_ERROR)
         {
             printf("[WORKER WRITE]: sent: %s.\n", messageBuff);
-            if (strcmp(msg, "exit") == 0) {
+            if (strcmp(msg->bufferNoName, "exit") == 0) {
 
-                printf("[WORKER WRITE]: Worker process signig off.\n");
+                printf("[WORKER WRITE]: Worker process signing off.\n");
                 break;
             }
 
@@ -88,7 +79,8 @@ DWORD WINAPI worker_write(LPVOID param) {
 
         }
         // empty the message buffer
-        strcpy(msg, "");
+        memset(msg->clientName, 0,CLIENT_NAME_LEN);
+        memset(msg->bufferNoName, 0,BUFFER_WITHOUT_NAME);
        
     }
     return 0;
@@ -276,7 +268,7 @@ DWORD WINAPI worker_listener(LPVOID param) {
 
         node* new_node = (node*)malloc(sizeof(node));
         new_node->msgSemaphore = CreateSemaphore(0, 0, 1, NULL);
-        new_node->msgBuffer = (char*)malloc(sizeof(char) * 266);
+        new_node->msgStruct = (messageStruct*)malloc(sizeof(messageStruct));
         new_node->acceptedSocket = acceptedSocket;
 
         unsigned long non_blocking = 1;

@@ -9,7 +9,6 @@
 
 #define WORKER_IP_ADDRESS "127.0.0.1"
 #define WORKER_PORT 6069
-#define BUFFER_SIZE 256
 
 #pragma warning(disable:4996)
 
@@ -65,11 +64,11 @@ DWORD WINAPI check_percentage(LPVOID param) {
             node* first_elem = delete_first_node(free_workers_list);
            
 
-            if (first_elem != NULL) {
+            if (first_elem != NULL && worker_process_count>1) {
 
                 //EnterCriticalSection(&globalCs);
 
-                strcpy(first_elem->msgBuffer, "exit");
+                strcpy(first_elem->msgStruct->bufferNoName, "exit");
                 ReleaseSemaphore(first_elem->msgSemaphore, 1, NULL);
 
                 //wait for worker read and write to finish
@@ -98,13 +97,14 @@ DWORD WINAPI check_percentage(LPVOID param) {
             // open new worker processes
             //CreateProcess();
             create_new_worker_process();
+            worker_process_count++;
         }
     }
 }
 
 DWORD WINAPI dispatcher(LPVOID param) {
 
-    char message[266];
+    messageStruct* dequeuedMessageStruct = NULL;
 
     while (true) {
         Sleep(3000);
@@ -116,10 +116,12 @@ DWORD WINAPI dispatcher(LPVOID param) {
             node* first = free_workers_list->head;
             if (free_workers_list->head != NULL)
             {
-                dequeue(message);
+                dequeue(&dequeuedMessageStruct);
 
-                memcpy(first->msgBuffer, message,CLIENT_NAME_LEN+256);
+                EnterCriticalSection(&free_workers_list->cs);
+                first->msgStruct=dequeuedMessageStruct;
                 ReleaseSemaphore(first->msgSemaphore, 1, NULL);
+                LeaveCriticalSection(&free_workers_list->cs);
 
                 move_first_node(busy_workers_list, free_workers_list);
 
@@ -162,7 +164,7 @@ int main() {
     hListenerWorker = CreateThread(NULL, 0, &worker_listener, (LPVOID)0, 0, &listenerWorkerID);
     hDispatcher = CreateThread(NULL, 0, &dispatcher, (LPVOID)0, 0, &dispatcherID);
 
-    create_new_worker_process();
+    //create_new_worker_process();
     worker_process_count++;
 
     //wait for listener to finish

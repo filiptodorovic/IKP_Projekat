@@ -56,5 +56,8 @@
     <ClInclude Include="worker_communication.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="basic_types.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

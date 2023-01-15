@@ -103,7 +103,7 @@ void test_hashing() {
     printf("ABC13 => %d\n", hash(str));
     strcpy(str, "GDASG");
     printf("ABC14 => %d\n", hash(str));
-}
+}/*
 DWORD WINAPI producer(LPVOID param) {
     queue* q = (queue*)param;
     char clientName[10] = "Client0";
@@ -143,4 +143,4 @@ void test_dynamic_enqueue_dequeue() {
         WaitForSingleObject(hConsumer, INFINITE);
     if (hProducer)
         WaitForSingleObject(hProducer, INFINITE);
-}
+}*/

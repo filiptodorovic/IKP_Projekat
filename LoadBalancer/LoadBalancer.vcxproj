@@ -149,6 +149,7 @@
     <ClCompile Include="worker_communication.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="basic_types.h" />
     <ClInclude Include="client_communication.h" />
     <ClInclude Include="hash_map.h" />
     <ClInclude Include="list.h" />

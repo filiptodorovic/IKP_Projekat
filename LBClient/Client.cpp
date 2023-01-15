@@ -119,15 +119,8 @@ int main()
         printf("Enter message to send. Enter 'exit' if you want to close connection. ");
         gets_s(dataBuffer, BUFFER_SIZE);
 
-        char msgLen = strlen(dataBuffer);
-        char dataBuffer2[BUFFER_SIZE];
-        memset(dataBuffer2, 0, BUFFER_SIZE);
-        memset(dataBuffer2, msgLen, 1);
-        strcpy(dataBuffer2 + 1, dataBuffer);
-
-
         // Send message to server using connected socket
-        iResult = send(connectSocket, dataBuffer2, (int)strlen(dataBuffer2), 0);
+        iResult = send(connectSocket, dataBuffer, (int)strlen(dataBuffer), 0);
         if (strcmp(dataBuffer, "exit") == 0)
             break;
 

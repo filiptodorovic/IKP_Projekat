@@ -61,11 +61,16 @@ DWORD WINAPI client_read_write(LPVOID param) {
 
             // Log message text
             printf("Client %d sent: %s.\n", client_num, dataBuffer);
-            char toEnqueue[BUFFER_SIZE + CLIENT_NAME_LEN];
 
-            memset(toEnqueue, 0, BUFFER_SIZE + CLIENT_NAME_LEN);
+            messageStruct* newMessageStruct = (messageStruct*)malloc(sizeof(messageStruct));
+            strcpy(newMessageStruct->clientName, clientName);
+            strcpy(newMessageStruct->bufferNoName, dataBuffer);
+
+            
+
+            /*memset(toEnqueue, 0, BUFFER_SIZE + CLIENT_NAME_LEN);
             memcpy(toEnqueue, clientName, CLIENT_NAME_LEN);
-            memcpy((toEnqueue + CLIENT_NAME_LEN), dataBuffer, strlen(dataBuffer) + 1);
+            memcpy((toEnqueue + CLIENT_NAME_LEN), dataBuffer, strlen(dataBuffer) + 1);*/
 
             /*
             memset(toEnqueue, 0, sizeof(toEnqueue));
@@ -74,7 +79,7 @@ DWORD WINAPI client_read_write(LPVOID param) {
             memcpy(toEnqueue + strlen(clientName) + 2, dataBuffer, strlen(dataBuffer)+1);
             */
 
-            enqueue(toEnqueue);
+            enqueue(newMessageStruct);
 
         }
         else if (iResult == 0)	// Check if shutdown command is received
