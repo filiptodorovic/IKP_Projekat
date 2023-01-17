@@ -104,9 +104,58 @@ int main()
             printf("[WORKER]: load balancer sent: %s.\n", dataBuffer+1);// move to the actual message
             // Send message to server using connected socket
 
+            if (strcmp(dataBuffer+1, "exit") == 0) {
+                while (true) {
 
-            if(strcmp(dataBuffer+1, ":exit") == 0) //if the :exit is sent
-                _exit(0);
+                    iResult = send(connectSocket, dataBuffer, (int)strlen(dataBuffer), 0);
+                    if (iResult != SOCKET_ERROR)	// Check if message is successfully received
+                    {
+                        printf("[WORKER]: returned to load balancer %s\n", dataBuffer);
+                        //break;
+
+                        iResult = shutdown(connectSocket, SD_BOTH);
+
+                        // Check if connection is succesfully shut down.
+                        if (iResult == SOCKET_ERROR)
+                        {
+                            printf("[WORKER]: Shutdown failed with error: %d\n", WSAGetLastError());
+                            closesocket(connectSocket);
+                            WSACleanup();
+                            return 1;
+                        }
+
+                        // For demonstration purpose
+                        //printf("\nPress any key to exit: ");
+                        //_getch();
+
+
+                        // Close connected socket
+                        closesocket(connectSocket);
+
+                        // Deinitialize WSA library
+                        WSACleanup();
+
+                        return 0;
+
+
+                    }
+                    else	// There was an error during recv
+                    {
+
+                        if (WSAGetLastError() == WSAEWOULDBLOCK) {
+                            continue;
+                        }
+                        else {
+                            printf("[WORKER]: send failed with error: %d\n", WSAGetLastError());
+                            break;
+                        }
+
+                    }
+                }
+                
+            } //if the :exit is sent 
+                //exit(0);
+                //break;
 
             memset(dataBuffer2, 0, RET_BUFFER_SIZE);
 

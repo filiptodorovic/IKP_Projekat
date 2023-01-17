@@ -15,7 +15,7 @@
 list* busy_workers_list;
 list* free_workers_list;
 queue* q;
-static unsigned int worker_process_count = 0;
+static unsigned int worker_process_count = 1;
 
 STARTUPINFO startup_info;
 PROCESS_INFORMATION process_info;
@@ -30,8 +30,8 @@ void create_new_worker_process() {
     memset(&process_info, 0, sizeof(PROCESS_INFORMATION));
     TCHAR buff[100];
     GetCurrentDirectory(100, buff);
-    wcscat(buff, L"\\..\\Debug\\Worker.exe");
-    //wcscat(buff, L"\\..\\x64\\Debug\\Worker.exe");
+    //wcscat(buff, L"\\..\\Debug\\Worker.exe");
+    wcscat(buff, L"\\..\\x64\\Debug\\Worker.exe");
     TCHAR cmd[] = L"Worker.exe";
     if (!CreateProcess(
         buff,          // LPCTSTR lpApplicationName
@@ -67,11 +67,12 @@ DWORD WINAPI check_percentage(LPVOID param) {
 
             if (first_elem != NULL && worker_process_count>1) {
 
-                //EnterCriticalSection(&globalCs);
+                EnterCriticalSection(&globalCs);
 
                 strcpy(first_elem->msgStruct->bufferNoName, "exit");
                 ReleaseSemaphore(first_elem->msgSemaphore, 1, NULL);
 
+                /*
                 //wait for worker read and write to finish
                 if (first_elem->thread_read) {
                     //WaitForSingleObject(first_elem->thread_read, INFINITE);
@@ -82,13 +83,12 @@ DWORD WINAPI check_percentage(LPVOID param) {
                     //WaitForSingleObject(first_elem->thread_write, INFINITE);
                     CloseHandle(first_elem->thread_write);
                 }
+                */
                     
-
-
-                free(first_elem);
+                //free(first_elem);
                 worker_process_count--;
 
-                //LeaveCriticalSection(&globalCs);
+                LeaveCriticalSection(&globalCs);
             }
             
 
@@ -111,9 +111,12 @@ DWORD WINAPI dispatcher(LPVOID param) {
 
         if (!is_queue_empty()){
 
-            //EnterCriticalSection(&globalCs);
+            EnterCriticalSection(&globalCs);
 
             node* first = free_workers_list->head;
+
+            //EnterCriticalSection(&free_workers_list->cs);
+
             if (free_workers_list->head != NULL)
             {
                 dequeue(&dequeuedMessageStruct);
@@ -125,7 +128,8 @@ DWORD WINAPI dispatcher(LPVOID param) {
 
             }
 
-            //LeaveCriticalSection(&globalCs);
+            //LeaveCriticalSection(&free_workers_list->cs);
+            LeaveCriticalSection(&globalCs);
         }
     }
     return 0;
@@ -155,6 +159,7 @@ int main() {
     init_list(&free_workers_list);
     init_list(&busy_workers_list);
 
+    InitializeCriticalSection(&globalCs);
 
 
     hPercentage = CreateThread(NULL, 0, &check_percentage, (LPVOID)0, 0, &percentageID);
@@ -162,7 +167,7 @@ int main() {
     hListenerWorker = CreateThread(NULL, 0, &worker_listener, (LPVOID)0, 0, &listenerWorkerID);
     hDispatcher = CreateThread(NULL, 0, &dispatcher, (LPVOID)0, 0, &dispatcherID);
 
-    create_new_worker_process();
+    //create_new_worker_process();
 
     //wait for listener to finish
     if (hListenerClient)
@@ -178,6 +183,9 @@ int main() {
     delete_list(free_workers_list);
     delete_list(busy_workers_list);
     delete_queue();
+    
+    DeleteCriticalSection(&globalCs);
+
 	return 0;
 }
 

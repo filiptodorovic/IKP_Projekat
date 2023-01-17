@@ -56,6 +56,7 @@ DWORD WINAPI client_read_write(LPVOID param) {
                 // Connection was closed successfully
                 printf("Connection with client %d closed.\n", client_num);
                 closesocket(acceptedSocket);
+                //CloseHandle(client_read_write);
                 break;
             }
 
@@ -86,6 +87,7 @@ DWORD WINAPI client_read_write(LPVOID param) {
         {
             printf("Connection with client closed.\n");
             closesocket(acceptedSocket);
+            //CloseHandle(client_read_write);
             break;
         }
         else	// There was an error during recv
@@ -93,6 +95,7 @@ DWORD WINAPI client_read_write(LPVOID param) {
 
             printf("recv failed with error: %d\n", WSAGetLastError());
             closesocket(acceptedSocket);
+            //CloseHandle(client_read_write);
             break;
         }
 
@@ -107,6 +110,8 @@ DWORD WINAPI client_read_write(LPVOID param) {
         }*/
 
     } while (true);
+
+    //CloseHandle(client_read_write);
 
     return 0;
 }
