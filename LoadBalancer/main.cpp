@@ -9,7 +9,8 @@
 
 #define WORKER_IP_ADDRESS "127.0.0.1"
 #define WORKER_PORT 6069
-#define DEBUG
+//#define DEBUG_LIST
+#define DEBUG_QUEUE
 
 #pragma warning(disable:4996)
 
@@ -108,7 +109,7 @@ DWORD WINAPI dispatcher(LPVOID param) {
     messageStruct* dequeuedMessageStruct = NULL;
 
     while (true) {
-        Sleep(2000);
+        Sleep(1000);
 
         if (!is_queue_empty()){
 
@@ -121,7 +122,8 @@ DWORD WINAPI dispatcher(LPVOID param) {
             if (free_workers_list->head != NULL)
             {
 
-#ifdef DEBUG
+#ifdef DEBUG_LIST
+                printf("Free Worker ");
                 print_list(free_workers_list);
 #endif
                 dequeue(&dequeuedMessageStruct);
@@ -132,7 +134,10 @@ DWORD WINAPI dispatcher(LPVOID param) {
                 LeaveCriticalSection(&free_workers_list->cs);
 
                 move_first_node(busy_workers_list, free_workers_list);
-
+#ifdef DEBUG_LIST
+                printf("Busy Worker ");
+                print_list(busy_workers_list);
+#endif
             }
 
             //LeaveCriticalSection(&free_workers_list->cs);
