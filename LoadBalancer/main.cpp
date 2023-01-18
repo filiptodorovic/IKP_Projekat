@@ -22,6 +22,7 @@ static unsigned int worker_process_count = 0;
 STARTUPINFO startup_info;
 PROCESS_INFORMATION process_info;
 
+
 void create_new_worker_process() {
 
     memset(&startup_info, 0, sizeof(STARTUPINFO));
@@ -69,7 +70,7 @@ DWORD WINAPI check_percentage(LPVOID param) {
 
             if (first_elem != NULL && worker_process_count>1) {
 
-                EnterCriticalSection(&globalCs);
+                //EnterCriticalSection(&globalCs);
 
                 strcpy(first_elem->msgStruct->bufferNoName, "exit");
                 ReleaseSemaphore(first_elem->msgSemaphore, 1, NULL);
@@ -90,7 +91,7 @@ DWORD WINAPI check_percentage(LPVOID param) {
                 //free(first_elem);
                 worker_process_count--;
 
-                LeaveCriticalSection(&globalCs);
+                //LeaveCriticalSection(&globalCs);
             }
             
 
@@ -170,8 +171,9 @@ int main() {
     create_queue(8);
     init_list(&free_workers_list);
     init_list(&busy_workers_list);
+    semaphoreEnd= CreateSemaphore(0, 0, 4, NULL);
 
-    InitializeCriticalSection(&globalCs);
+    //InitializeCriticalSection(&globalCs);
 
 
     hPercentage = CreateThread(NULL, 0, &check_percentage, (LPVOID)0, 0, &percentageID);
@@ -180,6 +182,10 @@ int main() {
     hDispatcher = CreateThread(NULL, 0, &dispatcher, (LPVOID)0, 0, &dispatcherID);
 
     create_new_worker_process();
+
+    printf("Press any key to exit:\n");
+    char input[2];
+    gets_s(input,2);
 
     //wait for listener to finish
     if (hListenerClient)
@@ -196,7 +202,7 @@ int main() {
     delete_list(busy_workers_list);
     delete_queue();
     
-    DeleteCriticalSection(&globalCs);
+    //DeleteCriticalSection(&globalCs);
 
 	return 0;
 }
