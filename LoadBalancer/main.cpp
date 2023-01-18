@@ -9,13 +9,14 @@
 
 #define WORKER_IP_ADDRESS "127.0.0.1"
 #define WORKER_PORT 6069
+#define DEBUG
 
 #pragma warning(disable:4996)
 
 list* busy_workers_list;
 list* free_workers_list;
 queue* q;
-static unsigned int worker_process_count = 1;
+static unsigned int worker_process_count = 0;
 
 STARTUPINFO startup_info;
 PROCESS_INFORMATION process_info;
@@ -30,8 +31,8 @@ void create_new_worker_process() {
     memset(&process_info, 0, sizeof(PROCESS_INFORMATION));
     TCHAR buff[100];
     GetCurrentDirectory(100, buff);
-    //wcscat(buff, L"\\..\\Debug\\Worker.exe");
-    wcscat(buff, L"\\..\\x64\\Debug\\Worker.exe");
+    wcscat(buff, L"\\..\\Debug\\Worker.exe");
+    //wcscat(buff, L"\\..\\x64\\Debug\\Worker.exe");
     TCHAR cmd[] = L"Worker.exe";
     if (!CreateProcess(
         buff,          // LPCTSTR lpApplicationName
@@ -107,11 +108,11 @@ DWORD WINAPI dispatcher(LPVOID param) {
     messageStruct* dequeuedMessageStruct = NULL;
 
     while (true) {
-        Sleep(3000);
+        Sleep(2000);
 
         if (!is_queue_empty()){
 
-            EnterCriticalSection(&globalCs);
+            //EnterCriticalSection(&globalCs);
 
             node* first = free_workers_list->head;
 
@@ -119,17 +120,23 @@ DWORD WINAPI dispatcher(LPVOID param) {
 
             if (free_workers_list->head != NULL)
             {
+
+#ifdef DEBUG
+                print_list(free_workers_list);
+#endif
                 dequeue(&dequeuedMessageStruct);
 
+                EnterCriticalSection(&free_workers_list->cs);
                 first->msgStruct=dequeuedMessageStruct;
                 ReleaseSemaphore(first->msgSemaphore, 1, NULL);
+                LeaveCriticalSection(&free_workers_list->cs);
 
                 move_first_node(busy_workers_list, free_workers_list);
 
             }
 
             //LeaveCriticalSection(&free_workers_list->cs);
-            LeaveCriticalSection(&globalCs);
+            //LeaveCriticalSection(&globalCs);
         }
     }
     return 0;
@@ -167,7 +174,7 @@ int main() {
     hListenerWorker = CreateThread(NULL, 0, &worker_listener, (LPVOID)0, 0, &listenerWorkerID);
     hDispatcher = CreateThread(NULL, 0, &dispatcher, (LPVOID)0, 0, &dispatcherID);
 
-    //create_new_worker_process();
+    create_new_worker_process();
 
     //wait for listener to finish
     if (hListenerClient)

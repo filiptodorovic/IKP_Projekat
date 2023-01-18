@@ -32,6 +32,7 @@ node* delete_first_node(list* l);
 //node* find_node(SOCKET acceptedSocket, list* l);
 node* find_previous_node(list* lst, node* target);
 //void put_done_node_to_free(node* done_node, list* busyList, list* freeList);
+void move_specific_node(list* to, list* from, node* n);
 void move_first_node(list* to, list* from);
 void print_list(list *l);
 void delete_list(list* l);

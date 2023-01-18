@@ -133,6 +133,7 @@ DWORD WINAPI worker_read(LPVOID param) {
                 TerminateThread(new_node->thread_write, 0);
                 TerminateThread(GetCurrentThread(), 0);
                 delete_node(new_node, busy_workers_list);
+                free(new_node->msgStruct);
                 free(new_node);
                 //return 0;
             }
@@ -159,6 +160,7 @@ DWORD WINAPI worker_read(LPVOID param) {
                 {
                     printf("[WORKER]: returned to client: %s\n", dataBuffer);
 
+                    //move_specific_node(free_workers_list, busy_workers_list, new_node);
                     // we will kick out the node from the busy list
                     delete_node(new_node, busy_workers_list);
 
@@ -273,6 +275,7 @@ DWORD WINAPI worker_listener(LPVOID param) {
     }
 
     printf("WORKER socket is set to listening mode. Waiting for new connection requests.\n");
+    static int worker_thread_cnt = 0;
 
     do
     {
@@ -300,27 +303,28 @@ DWORD WINAPI worker_listener(LPVOID param) {
         HANDLE hWorkerWrite, hWorkerRead;
         DWORD workerWID, workerRID;
 
-        node* new_node = (node*)malloc(sizeof(node));
-        new_node->msgSemaphore = CreateSemaphore(0, 0, 1, NULL);
-        new_node->msgStruct = (messageStruct*)malloc(sizeof(messageStruct));
-        new_node->acceptedSocket = acceptedSocket;
-
         unsigned long non_blocking = 1;
         ioctlsocket(acceptedSocket, FIONBIO, &non_blocking);
 
-
-        HANDLE workerWrite = CreateThread(NULL, 0, &worker_write, (LPVOID)new_node, 0, &workerWID);
-        HANDLE workerRead = CreateThread(NULL, 0, &worker_read, (LPVOID)new_node, 0, &workerRID);
-
-        new_node->thread_read = workerRead;
-        new_node->thread_write = workerWrite;
+        node* new_node = (node*)malloc(sizeof(node));
+        new_node->msgSemaphore = CreateSemaphore(0, 0, 1, NULL);
+        new_node->msgStruct = (messageStruct*)malloc(sizeof(messageStruct));
+        new_node->acceptedSocket = acceptedSocket;        
+        new_node->thread_write = CreateThread(NULL, 0, &worker_write, (LPVOID)new_node, 0, &workerWID);
+        new_node->thread_read = CreateThread(NULL, 0, &worker_read, (LPVOID)new_node, 0, &workerRID);
         new_node->next = NULL;
+
+        TCHAR workerReadDescription[20];
+        TCHAR workerWriteDescription[20];
+        wsprintfW(workerReadDescription, L"WRR %d", worker_thread_cnt);
+        wsprintfW(workerWriteDescription, L"WRW %d", worker_thread_cnt);
+
+        SetThreadDescription(new_node->thread_read, workerReadDescription);
+        SetThreadDescription(new_node->thread_write, workerWriteDescription);
         
         insert_last_node(new_node, free_workers_list);
+        worker_thread_cnt++;
 
-
-       
-        
         //Put accepted socket/thread in the FREE LIST
 
     } while (true);
