@@ -59,6 +59,22 @@ void create_new_worker_process() {
 
 CRITICAL_SECTION globalCs;
 
+void shut_down_first_free_process() {
+    node* first_elem = delete_first_node(free_workers_list);
+
+    if (first_elem != NULL) {
+
+        strcpy(first_elem->msgStruct->bufferNoName, "exit");
+        ReleaseSemaphore(first_elem->msgSemaphore, 1, NULL);
+        if (first_elem->thread_read)
+            WaitForSingleObject(first_elem->thread_read,INFINITE);
+        if (first_elem->thread_write)
+            WaitForSingleObject(first_elem->thread_write, INFINITE);
+        free(first_elem);
+        worker_process_count--;
+    }
+}
+
 DWORD WINAPI check_percentage(LPVOID param) {
     while (true) {
         if (WaitForSingleObject(semaphoreEnd, 10) == WAIT_OBJECT_0)
@@ -68,36 +84,7 @@ DWORD WINAPI check_percentage(LPVOID param) {
         printf("Queue is at %d%%\n", fullfillness);
         if (fullfillness < 30 && worker_process_count>1) {
             //shut down worker threads
-            node* first_elem = delete_first_node(free_workers_list);
-           
-
-            if (first_elem != NULL && worker_process_count>1) {
-
-                //EnterCriticalSection(&globalCs);
-
-                strcpy(first_elem->msgStruct->bufferNoName, "exit");
-                ReleaseSemaphore(first_elem->msgSemaphore, 1, NULL);
-
-                /*
-                //wait for worker read and write to finish
-                if (first_elem->thread_read) {
-                    //WaitForSingleObject(first_elem->thread_read, INFINITE);
-                    CloseHandle(first_elem->thread_read);
-                }
-              
-                if (first_elem->thread_write) {
-                    //WaitForSingleObject(first_elem->thread_write, INFINITE);
-                    CloseHandle(first_elem->thread_write);
-                }
-                */
-                    
-                //free(first_elem);
-                worker_process_count--;
-
-                //LeaveCriticalSection(&globalCs);
-            }
-            
-
+            shut_down_first_free_process();
            
         }
         else if (fullfillness > 70) {
@@ -162,7 +149,7 @@ DWORD WINAPI dispatcher(LPVOID param) {
 
 
 int main() {
-
+    int a = 0;
     HANDLE hListenerClient;
     HANDLE hListenerWorker;
     HANDLE hPercentage;
@@ -195,15 +182,17 @@ int main() {
 
     ReleaseSemaphore(semaphoreEnd, 4, NULL);
 
+    //close the process and worker write and read thread
+    shut_down_first_free_process();
     //wait for listener to finish
     if (hPercentage)
         WaitForSingleObject(hPercentage, INFINITE);
     if (hDispatcher)
         WaitForSingleObject(hDispatcher, INFINITE);
-    if (hListenerClient)
-        WaitForSingleObject(hListenerClient, INFINITE);
     if (hListenerWorker)
         WaitForSingleObject(hListenerWorker, INFINITE);
+    if (hListenerClient)
+        WaitForSingleObject(hListenerClient, INFINITE);
 
     delete_hashtable();
     delete_list(free_workers_list);

@@ -88,6 +88,7 @@ DWORD WINAPI worker_write(LPVOID param) {
             }
             else {
                 printf("[WORKER WRITE]: send failed with error: %d\n", WSAGetLastError());
+                break;
             }
 
         }
@@ -277,8 +278,13 @@ DWORD WINAPI worker_listener(LPVOID param) {
     printf("WORKER socket is set to listening mode. Waiting for new connection requests.\n");
     static int worker_thread_cnt = 0;
 
+    unsigned long nb_listen = 1;
+    ioctlsocket(listenSocket, FIONBIO, &nb_listen);
+
     do
     {
+        if (WaitForSingleObject(semaphoreEnd, 10) == WAIT_OBJECT_0)
+            break;
         // Struct for information about connected client
         sockaddr_in clientAddr;
 
@@ -287,59 +293,68 @@ DWORD WINAPI worker_listener(LPVOID param) {
         // Accept new connections from clients 
         acceptedSocket = accept(listenSocket, (struct sockaddr*)&clientAddr, &clientAddrSize);
 
-        // Check if accepted socket is valid 
-        if (acceptedSocket == INVALID_SOCKET)
+        if (acceptedSocket != SOCKET_ERROR) {
+            // Neblokirajuca operacija koja je uspesno izvrsena
+
+            printf("\n[WORKER THREAD]: New Worker accepted. Worker address: %s : %d\n", inet_ntoa(clientAddr.sin_addr), ntohs(clientAddr.sin_port));
+
+            //create a new thread for a new client connected
+            //create thread za workere prima ceo element liste ne samo accepted socket!!!
+            HANDLE hWorkerWrite, hWorkerRead;
+            DWORD workerWID, workerRID;
+
+            unsigned long non_blocking = 1;
+            ioctlsocket(acceptedSocket, FIONBIO, &non_blocking);
+
+            node* new_node = (node*)malloc(sizeof(node));
+            new_node->msgSemaphore = CreateSemaphore(0, 0, 1, NULL);
+            new_node->msgStruct = (messageStruct*)malloc(sizeof(messageStruct));
+            new_node->acceptedSocket = acceptedSocket;
+            new_node->thread_write = CreateThread(NULL, 0, &worker_write, (LPVOID)new_node, 0, &workerWID);
+            new_node->thread_read = CreateThread(NULL, 0, &worker_read, (LPVOID)new_node, 0, &workerRID);
+            new_node->next = NULL;
+
+            TCHAR workerReadDescription[20];
+            TCHAR workerWriteDescription[20];
+            wsprintfW(workerReadDescription, L"WRR %d", worker_thread_cnt);
+            wsprintfW(workerWriteDescription, L"WRW %d", worker_thread_cnt);
+
+            SetThreadDescription(new_node->thread_read, workerReadDescription);
+            SetThreadDescription(new_node->thread_write, workerWriteDescription);
+
+            insert_last_node(new_node, free_workers_list);
+            worker_thread_cnt++;
+
+            //Put accepted socket/thread in the FREE LIST
+        }
+        else
         {
-            printf("accept failed with error: %d\n", WSAGetLastError());
-            closesocket(listenSocket);
-            WSACleanup();
-            return 1;
+            if (WSAGetLastError() == WSAEWOULDBLOCK) {
+                // U pitanju je blokirajuca operacija koja zbog rezima
+                // soketa nece biti izvrsena 
+                continue;
+            }
+            else {
+                printf("[WORKER]: accept failed with error: %d\n", WSAGetLastError());
+                break;
+                // Desila se neka druga greska prilikom poziva operacije
+            }
         }
 
-        printf("\n[WORKER THREAD]: New Worker accepted. Worker address: %s : %d\n", inet_ntoa(clientAddr.sin_addr), ntohs(clientAddr.sin_port));
-
-        //create a new thread for a new client connected
-        //create thread za workere prima ceo element liste ne samo accepted socket!!!
-        HANDLE hWorkerWrite, hWorkerRead;
-        DWORD workerWID, workerRID;
-
-        unsigned long non_blocking = 1;
-        ioctlsocket(acceptedSocket, FIONBIO, &non_blocking);
-
-        node* new_node = (node*)malloc(sizeof(node));
-        new_node->msgSemaphore = CreateSemaphore(0, 0, 1, NULL);
-        new_node->msgStruct = (messageStruct*)malloc(sizeof(messageStruct));
-        new_node->acceptedSocket = acceptedSocket;        
-        new_node->thread_write = CreateThread(NULL, 0, &worker_write, (LPVOID)new_node, 0, &workerWID);
-        new_node->thread_read = CreateThread(NULL, 0, &worker_read, (LPVOID)new_node, 0, &workerRID);
-        new_node->next = NULL;
-
-        TCHAR workerReadDescription[20];
-        TCHAR workerWriteDescription[20];
-        wsprintfW(workerReadDescription, L"WRR %d", worker_thread_cnt);
-        wsprintfW(workerWriteDescription, L"WRW %d", worker_thread_cnt);
-
-        SetThreadDescription(new_node->thread_read, workerReadDescription);
-        SetThreadDescription(new_node->thread_write, workerWriteDescription);
-        
-        insert_last_node(new_node, free_workers_list);
-        worker_thread_cnt++;
-
-        //Put accepted socket/thread in the FREE LIST
 
     } while (true);
 
     // Shutdown the connection since we're done
     iResult = shutdown(acceptedSocket, SD_BOTH);
 
-    // Check if connection is succesfully shut down.
-    if (iResult == SOCKET_ERROR)
-    {
-        printf("shutdown failed with error: %d\n", WSAGetLastError());
-        closesocket(acceptedSocket);
-        WSACleanup();
-        return 1;
-    }
+    //// Check if connection is succesfully shut down.
+    //if (iResult == SOCKET_ERROR)
+    //{
+    //    printf("shutdown failed with error: %d\n", WSAGetLastError());
+    //    closesocket(acceptedSocket);
+    //    WSACleanup();
+    //    return 1;
+    //}
 
     //Close listen and accepted sockets
     closesocket(listenSocket);
