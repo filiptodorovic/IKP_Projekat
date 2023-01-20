@@ -9,4 +9,4 @@ typedef struct messageStruct {
 	char bufferNoName[BUFFER_WITHOUT_NAME];
 }messageStruct;
 
-//HANDLE semaphoreEnd;
+extern HANDLE semaphoreEnd;

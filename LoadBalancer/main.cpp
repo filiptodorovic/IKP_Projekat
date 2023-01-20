@@ -17,6 +17,7 @@
 list* busy_workers_list;
 list* free_workers_list;
 queue* q;
+HANDLE semaphoreEnd;
 static unsigned int worker_process_count = 0;
 
 STARTUPINFO startup_info;
@@ -60,6 +61,8 @@ CRITICAL_SECTION globalCs;
 
 DWORD WINAPI check_percentage(LPVOID param) {
     while (true) {
+        if (WaitForSingleObject(semaphoreEnd, 10) == WAIT_OBJECT_0)
+            break;
         Sleep(3000);
         int fullfillness = ((float)get_current_size_queue() / (float)get_capacity_queue()) * 100;
         printf("Queue is at %d%%\n", fullfillness);
@@ -103,6 +106,7 @@ DWORD WINAPI check_percentage(LPVOID param) {
             create_new_worker_process();
         }
     }
+    return 0;
 }
 
 DWORD WINAPI dispatcher(LPVOID param) {
@@ -110,6 +114,8 @@ DWORD WINAPI dispatcher(LPVOID param) {
     messageStruct* dequeuedMessageStruct = NULL;
 
     while (true) {
+        if (WaitForSingleObject(semaphoreEnd, 10) == WAIT_OBJECT_0)
+            break;
         Sleep(1000);
 
         if (!is_queue_empty()){
@@ -171,7 +177,7 @@ int main() {
     create_queue(8);
     init_list(&free_workers_list);
     init_list(&busy_workers_list);
-    //semaphoreEnd= CreateSemaphore(0, 0, 4, NULL);
+    semaphoreEnd= CreateSemaphore(0, 0, 4, NULL);
 
     //InitializeCriticalSection(&globalCs);
 
@@ -187,15 +193,17 @@ int main() {
     char input[2];
     gets_s(input,2);
 
+    ReleaseSemaphore(semaphoreEnd, 4, NULL);
+
     //wait for listener to finish
-    if (hListenerClient)
-        WaitForSingleObject(hListenerClient, INFINITE);
-    if (hListenerWorker)
-        WaitForSingleObject(hListenerWorker, INFINITE);
     if (hPercentage)
         WaitForSingleObject(hPercentage, INFINITE);
     if (hDispatcher)
         WaitForSingleObject(hDispatcher, INFINITE);
+    if (hListenerClient)
+        WaitForSingleObject(hListenerClient, INFINITE);
+    if (hListenerWorker)
+        WaitForSingleObject(hListenerWorker, INFINITE);
 
     delete_hashtable();
     delete_list(free_workers_list);
