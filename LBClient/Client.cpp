@@ -12,10 +12,51 @@
 #pragma comment (lib, "Ws2_32.lib")
 #pragma comment (lib, "Mswsock.lib")
 #pragma comment (lib, "AdvApi32.lib")
+#pragma warning(disable:4996)
 
 #define SERVER_IP_ADDRESS "127.0.0.1"
 #define SERVER_PORT 5059
 #define BUFFER_SIZE 256
+
+DWORD WINAPI client_read(LPVOID param) {
+    SOCKET connectedSocket = (SOCKET)param;
+    //check if we got data from client or EXIT signal
+    //OR if we got a message from worker
+    char dataBuffer[BUFFER_SIZE];
+    do
+    {
+
+        int iResult = recv(connectedSocket, dataBuffer, BUFFER_SIZE, 0);
+
+        if (iResult != SOCKET_ERROR) {
+
+            if (iResult > 0) {
+                dataBuffer[iResult] = '\0';
+                // Log message text
+                printf("[CLIENT]: Worker/LB sent: %s.\n", dataBuffer);
+            }
+            else if (iResult == 0) {
+                printf("[CLIENT]: Connection closed.\n");
+                break;
+            }
+
+        }
+        else	// There was an error during recv
+        {
+
+            if (WSAGetLastError() == WSAEWOULDBLOCK) {
+                continue;
+            }
+            else {
+                printf("[CLIENT]: recv failed with error: %d\n", WSAGetLastError());
+                break;
+            }
+
+        }
+
+    } while (true);
+}
+
 
 // TCP client that use blocking sockets
 int main()
@@ -69,6 +110,10 @@ int main()
     u_long non_blocking = 1;
     ioctlsocket(connectSocket, FIONBIO, &non_blocking);
 
+    HANDLE hClientListener;
+    DWORD clientID;
+    hClientListener = CreateThread(NULL, 0, &client_read, (LPVOID)connectSocket, 0, &clientID);
+
     while (true) {
         // Read string from user into outgoing buffer
         printf("Enter message to send. Enter 'exit' if you want to close connection. ");
@@ -76,7 +121,7 @@ int main()
 
         // Send message to server using connected socket
         iResult = send(connectSocket, dataBuffer, (int)strlen(dataBuffer), 0);
-        if (strcmp(dataBuffer,"exit")==0)
+        if (strcmp(dataBuffer, "exit") == 0)
             break;
 
         // Check result of send function
@@ -86,36 +131,13 @@ int main()
             closesocket(connectSocket);
             WSACleanup();
             return 1;
-        }
+        } 
 
         printf("Message successfully sent. Total bytes: %ld\n", iResult);
         
-        iResult = recv(connectSocket, dataBuffer, (int)strlen(dataBuffer), 0);
-        if (iResult > 0)	// Check if message is successfully received
-        {
-            dataBuffer[iResult] = '\0';
-
-            // Log message text
-            printf("LOAD BALANCER sent: %s.\n", dataBuffer);
-
-        }
-        else if (iResult == -1) {
-
-            continue;
-        }
-        else	// There was an error during recv
-        {
-
-            printf("recv failed with error: %d\n", WSAGetLastError());
-            //closesocket(acceptedSocket);
-            break;
-        }
-        
-        
     }
-
-    
-
+        
+   
     // Shutdown the connection since we're done
     iResult = shutdown(connectSocket, SD_BOTH);
 

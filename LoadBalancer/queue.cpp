@@ -6,8 +6,10 @@ HANDLE hSemaporeQueueEmpty;
 HANDLE hSemaporeQueueFull;
 
 #define DEBUG
+#define BUFFER_SIZE 256
 
-queue* create_queue(int capacity) {
+
+void create_queue(int capacity) {
 	queue* newQueue = (queue*)malloc(sizeof(queue));
 	newQueue->front = 0;
 	newQueue->rear = capacity-1;
@@ -15,7 +17,7 @@ queue* create_queue(int capacity) {
 	newQueue->currentSize = 0;
 
 	//create array of messages
-	newQueue->messageArray = (char**)malloc(sizeof(char*) * capacity);
+	newQueue->messageArray = (messageStruct**)malloc(sizeof(messageStruct*) * capacity);
 
 	for (int i = 0; i < capacity; i++) {
 		newQueue->messageArray[i] = NULL;
@@ -25,43 +27,46 @@ queue* create_queue(int capacity) {
 	hSemaporeQueueEmpty = CreateSemaphore(0, capacity, capacity, NULL); //empty slots
 	hSemaporeQueueFull = CreateSemaphore(0, 0, capacity, NULL); //taken slots
 
-	return newQueue;
+	q = newQueue;
 }
 
-int is_full(queue* q)
+int is_queue_full()
 {
 	return (q->currentSize == q->capacity);
 }
 
-int is_empty(queue* q)
+int is_queue_empty()
 {
 	return (q->currentSize == 0);
 }
 
-int get_current_size(queue* q) {
+int get_current_size_queue() {
 	return q->currentSize;
 }
 
-int get_capacity(queue* q) {
+int get_capacity_queue() {
 	return q->capacity;
 }
 
-void enqueue(queue* q, char* message) {
-	while (is_full(q)) {
+void enqueue(messageStruct* messageArray) {
+	if (is_queue_full) {
+		WaitForSingleObject(hSemaporeQueueEmpty, INFINITE);
+	}
+	/*while (is_queue_full()) {
 		if (WaitForSingleObject(hSemaporeQueueEmpty, INFINITE) == WAIT_OBJECT_0 + 1)
 			break;
-	}
+	}*/
 	{
 		EnterCriticalSection(&q->cs);
 		//The front and rear will go around like in a circular buffer
-		q->rear = (q->rear + 1) % q->capacity;
-		q->messageArray[q->rear] = (char*)malloc(strlen(message) + 1);
 
 		//Write at that place the new message
-		strcpy(q->messageArray[q->rear],message);
+		q->rear = (q->rear + 1) % q->capacity;
+		q->messageArray[q->rear] = messageArray;
+
 		q->currentSize++;
 		#ifdef DEBUG
-		print_queue(q);
+		print_queue();
 		#endif
 		ReleaseSemaphore(hSemaporeQueueFull, 1, NULL); // increase the number of filled spots
 		LeaveCriticalSection(&q->cs);
@@ -69,17 +74,22 @@ void enqueue(queue* q, char* message) {
 
 }
 
-void dequeue(queue* q,char* message) {
-	while (q->currentSize == 0) {
-		if (WaitForSingleObject(hSemaporeQueueFull, INFINITE) == WAIT_OBJECT_0 + 1)
-			break;//The queue is full, wait for elements to be dequeued
+void dequeue(messageStruct** messageArray) {
+	//while (q->currentSize == 0) {
+	//	if (WaitForSingleObject(hSemaporeQueueFull, INFINITE) == WAIT_OBJECT_0 + 1)
+	//		break;//The queue is full, wait for elements to be dequeued
+	//}
+
+	if(q->currentSize == 0) {
+		WaitForSingleObject(hSemaporeQueueFull, INFINITE);
 	}
 
 	{
 		EnterCriticalSection(&q->cs);
-		strcpy(message, q->messageArray[q->front]);
 
-		free(q->messageArray[q->front]);
+
+		*messageArray = q->messageArray[q->front];
+
 		q->messageArray[q->front] = NULL;
 		q->front = (q->front + 1) % q->capacity;
 		q->currentSize--;
@@ -88,14 +98,14 @@ void dequeue(queue* q,char* message) {
 			q->rear = q->capacity - 1;
 		}
 		#ifdef DEBUG
-		print_queue(q);
+		print_queue();
 		#endif
 		ReleaseSemaphore(hSemaporeQueueEmpty, 1, NULL); // increase the number of empty
 		LeaveCriticalSection(&q->cs);
 	}
 }
 
-void delete_queue(queue* q) {
+void delete_queue() {
 	for (int i = q->front; i <= q->rear; i++) {
 		free(q->messageArray[i]);
 	}
@@ -106,12 +116,13 @@ void delete_queue(queue* q) {
 	CloseHandle(hSemaporeQueueFull);
 }
 
-void print_queue(queue *q) {
+void print_queue() {
 	printf("\n QUEUE: ");
 	for (int i = q->front; q->messageArray[i]!=NULL;) {
 		if (i == q->capacity)
 			i = i % q->capacity;
-		printf(" %s ", q->messageArray[i]);
+
+		printf(" %s->%s", q->messageArray[i]->clientName, q->messageArray[i]->bufferNoName);
 		if (i == q->rear)break;
 		++i;
 	}

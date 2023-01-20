@@ -36,28 +36,28 @@ void test_list() {
     init_list(&listSlobodni);
     init_list(&listZauzeti);
 
-    insert_last_node(hSlobodni1, listSlobodni);
+    /*insert_last_node(hSlobodni1, listSlobodni);
     insert_last_node(hSlobodni2, listSlobodni);
     insert_first_node(hSlobodni3, listSlobodni);
 
 
     insert_last_node(hZauzeti1, listZauzeti);
     insert_last_node(hZauzeti2, listZauzeti);
-    insert_last_node(hZauzeti3, listZauzeti);
+    insert_last_node(hZauzeti3, listZauzeti);*/
 
     printf("\nLista slobodnih: ");
     print_list(listZauzeti);
-    delete_node(hSlobodni2, listSlobodni);
+    //delete_node(hSlobodni2, listSlobodni);
 
     printf("\nLista slobodnih nakon brisanja: ");
     print_list(listSlobodni);
 
-    delete_node(hSlobodni1, listSlobodni);
+    //delete_node(hSlobodni1, listSlobodni);
     printf("\nLista slobodnih nakon brisanja: ");
     print_list(listSlobodni);
 
-    delete_node(hSlobodni3, listSlobodni);
-    delete_node(hSlobodni1, listSlobodni);
+    //delete_node(hSlobodni3, listSlobodni);
+    //delete_node(hSlobodni1, listSlobodni);
 
     printf("\nLista zauzetih: ");
     print_list(listZauzeti);
@@ -103,12 +103,19 @@ void test_hashing() {
     printf("ABC13 => %d\n", hash(str));
     strcpy(str, "GDASG");
     printf("ABC14 => %d\n", hash(str));
-}
+}/*
 DWORD WINAPI producer(LPVOID param) {
     queue* q = (queue*)param;
-    char data_a[10] = "ABC";
+    char clientName[10] = "Client0";
+    char message[10] = "mess";
+    char toEnqueue[20];
+
+    memset(toEnqueue, 0, 20);
+    memcpy(toEnqueue, clientName, 10);
+    memcpy((toEnqueue + 10), message, strlen(message) + 1);
+
     while (true) {
-        enqueue(q, data_a);
+        enqueue(toEnqueue);
         Sleep(300);
     }
 }
@@ -117,11 +124,11 @@ DWORD WINAPI consumer(LPVOID param) {
     while (true) {
         char buffer[10];
         Sleep(500);
-        dequeue(q, buffer);
+        dequeue(buffer);
     }
 }
 void test_dynamic_enqueue_dequeue() {
-    queue* q = create_queue(7);
+    create_queue(7);
 
     HANDLE hProducer;
     HANDLE hConsumer;
@@ -136,4 +143,4 @@ void test_dynamic_enqueue_dequeue() {
         WaitForSingleObject(hConsumer, INFINITE);
     if (hProducer)
         WaitForSingleObject(hProducer, INFINITE);
-}
+}*/

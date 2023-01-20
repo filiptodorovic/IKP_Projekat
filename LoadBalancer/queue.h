@@ -1,22 +1,25 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include <windows.h> 
+#include <windows.h>
+#include "basic_types.h"
 
 // A structure to represent a queue
 typedef struct {
 	CRITICAL_SECTION cs;
 	int front, rear, currentSize;
 	int capacity;
-	char** messageArray;
+	messageStruct** messageArray;
 }queue;
 
-queue* create_queue(int capacity);
-int is_full(queue* q);
-int is_empty(queue* q);
-void enqueue(queue* q, char* message);
-void dequeue(queue* q,char* message);
-void print_queue(queue* q);
-int get_current_size(queue* q);
-int get_capacity(queue* q);
-void delete_queue(queue* q);
+extern queue* q;
+
+void create_queue(int capacity);
+int is_queue_full();
+int is_queue_empty();
+void enqueue(messageStruct* message);
+void dequeue(messageStruct** message);
+void print_queue();
+int get_current_size_queue();
+int get_capacity_queue();
+void delete_queue();
