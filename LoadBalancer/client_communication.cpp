@@ -189,8 +189,6 @@ DWORD WINAPI client_listener(LPVOID param) {
 
     do
     {
-        if (WaitForSingleObject(semaphoreEnd, INFINITE) == WAIT_OBJECT_0 + 1)
-            break;
         // Struct for information about connected client
         sockaddr_in clientAddr;
 

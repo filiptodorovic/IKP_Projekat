@@ -171,7 +171,7 @@ int main() {
     create_queue(8);
     init_list(&free_workers_list);
     init_list(&busy_workers_list);
-    semaphoreEnd= CreateSemaphore(0, 0, 4, NULL);
+    //semaphoreEnd= CreateSemaphore(0, 0, 4, NULL);
 
     //InitializeCriticalSection(&globalCs);
 
