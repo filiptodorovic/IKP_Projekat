@@ -50,19 +50,9 @@ DWORD WINAPI worker_write(LPVOID param) {
         memset(messageBuff, 0, BUFFER_SIZE);// zero the buffer
         char message[BUFFER_SIZE + 1];
 
-
-        if (strcmp(msg->bufferNoName, "exit") == 0) {
-
-            sprintf(message, "%s", msg->bufferNoName);
-            msgLen = strlen("exit") + 1;
-
-        }
-        else {
-            sprintf(message, "%s:%s", msg->clientName, msg->bufferNoName);
-            msgLen = strlen(msg->clientName) + strlen(msg->bufferNoName) + 1 + 1; // client+message+delimiter+messageLen
-        }
-            
-
+        sprintf(message, "%s:%s", msg->clientName, msg->bufferNoName);
+        msgLen = strlen(msg->clientName) + strlen(msg->bufferNoName) + 1 + 1; // client+message+delimiter+messageLen
+        
         memset(messageBuff, msgLen, 1); // first byte is the length of the message
         strcpy(messageBuff + 1, message);
 
@@ -71,7 +61,7 @@ DWORD WINAPI worker_write(LPVOID param) {
         if (iResult != SOCKET_ERROR)
         {
             printf("[WORKER WRITE]: sent: %s.\n", messageBuff);
-            if (strcmp(messageBuff+1, "exit") == 0) {
+            if (strstr(msg->bufferNoName, "exit") != NULL) {
 
                 printf("[WORKER WRITE]: Worker process signing off.\n");
                 //TerminateThread(GetCurrentThread(), 0);
@@ -129,7 +119,7 @@ DWORD WINAPI worker_read(LPVOID param) {
             dataBuffer[iResult] = '\0';
 
             printf("[WORKER READ] Worker sent: %s.\n", dataBuffer);
-            if (strcmp(dataBuffer+1, "exit") == 0) {
+            if (strstr(dataBuffer+1, ":exit") != NULL) {
                 printf("[WORKER READ] Worker sent exit. Worker proccess signing off.\n");
                 TerminateThread(new_node->thread_write, 0);
                 TerminateThread(GetCurrentThread(), 0);
@@ -151,7 +141,7 @@ DWORD WINAPI worker_read(LPVOID param) {
             strcpy(bufferForClient, dataBuffer);
 
             client_thread* foundClient = lookup_client(clientName);
-            //if (foundClient) {
+            if (foundClient) {
 
                 iResult = send(foundClient->acceptedSocket, bufferForClient, (int)strlen(bufferForClient), 0);
                 memset(bufferForClient, 0, BUFFER_SIZE);
@@ -181,7 +171,7 @@ DWORD WINAPI worker_read(LPVOID param) {
                         break;
                     }
 
-                //}
+                }
             }
 
             // Send the message to the client...

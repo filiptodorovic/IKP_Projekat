@@ -113,16 +113,22 @@ int main()
     HANDLE hClientListener;
     DWORD clientID;
     hClientListener = CreateThread(NULL, 0, &client_read, (LPVOID)connectSocket, 0, &clientID);
+    int msgCnt = 0;
 
-    while (true) {
+    while (msgCnt <= 50) {
         // Read string from user into outgoing buffer
-        printf("Enter message to send. Enter 'exit' if you want to close connection. ");
-        gets_s(dataBuffer, BUFFER_SIZE);
+        //printf("Enter message to send. Enter 'exit' if you want to close connection. ");
+        //gets_s(dataBuffer, BUFFER_SIZE);
+        Sleep(1500);
+
+        sprintf(dataBuffer, "Hello LB!!!", (int)strlen("Hello LB!!!"));
 
         // Send message to server using connected socket
         iResult = send(connectSocket, dataBuffer, (int)strlen(dataBuffer), 0);
         if (strcmp(dataBuffer, "exit") == 0)
             break;
+
+        msgCnt++;
 
         // Check result of send function
         if (iResult == SOCKET_ERROR)

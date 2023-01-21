@@ -34,8 +34,8 @@ void create_new_worker_process() {
     memset(&process_info, 0, sizeof(PROCESS_INFORMATION));
     TCHAR buff[100];
     GetCurrentDirectory(100, buff);
-    wcscat(buff, L"\\..\\Debug\\Worker.exe");
-    //wcscat(buff, L"\\..\\x64\\Debug\\Worker.exe");
+    //wcscat(buff, L"\\..\\Debug\\Worker.exe");
+    wcscat(buff, L"\\..\\x64\\Debug\\Worker.exe");
     TCHAR cmd[] = L"Worker.exe";
     if (!CreateProcess(
         buff,          // LPCTSTR lpApplicationName
@@ -161,7 +161,7 @@ int main() {
     DWORD dispatcherID;
 
     init_hash_table();
-    create_queue(8);
+    create_queue(20);
     init_list(&free_workers_list);
     init_list(&busy_workers_list);
     semaphoreEnd= CreateSemaphore(0, 0, 4, NULL);
