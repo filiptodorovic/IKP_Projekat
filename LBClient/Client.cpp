@@ -115,13 +115,13 @@ int main()
     hClientListener = CreateThread(NULL, 0, &client_read, (LPVOID)connectSocket, 0, &clientID);
     int msgCnt = 0;
 
-    while (msgCnt <= 20) {
+    while (msgCnt <= 50) {
         // Read string from user into outgoing buffer
         //printf("Enter message to send. Enter 'exit' if you want to close connection. ");
         //gets_s(dataBuffer, BUFFER_SIZE);
-        Sleep(1500);
+        Sleep(300);
 
-        sprintf(dataBuffer, "Hello LB!!!", (int)strlen("Hello LB!!!"));
+        sprintf(dataBuffer, "Hello LB!!!");
 
         // Send message to server using connected socket
         iResult = send(connectSocket, dataBuffer, (int)strlen(dataBuffer), 0);
@@ -143,6 +143,13 @@ int main()
         
     }
     
+    Sleep(20000);
+
+    sprintf(dataBuffer, "exit");
+
+    // Send message to server using connected socket
+    iResult = send(connectSocket, dataBuffer, (int)strlen(dataBuffer), 0);
+
     // For demonstration purpose
     printf("\nPress any key to exit: ");
     _getch();

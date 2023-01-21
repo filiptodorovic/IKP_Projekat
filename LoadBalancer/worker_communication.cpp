@@ -121,16 +121,21 @@ DWORD WINAPI worker_read(LPVOID param) {
             printf("[WORKER READ] Worker sent: %s.\n", dataBuffer);
             if (strstr(dataBuffer+1, ":exit") != NULL) {
                 printf("[WORKER READ] Worker sent exit. Worker proccess signing off.\n");
-                TerminateThread(new_node->thread_write, 0);
-                TerminateThread(GetCurrentThread(), 0);
-                //CloseHandle(new_node->thread_write);
+
+                iResult = shutdown(new_node->acceptedSocket, SD_BOTH);
+                closesocket(new_node->acceptedSocket);
 
                 delete_node(new_node, busy_workers_list);
-                free(new_node->msgStruct);
-                new_node->msgStruct = NULL;
-                free(new_node);
-                new_node = NULL;
-                //return 0;
+                //free(new_node->msgStruct);
+                //free(new_node);
+                //new_node = NULL;
+
+
+                //TerminateThread(new_node->thread_write, 0);
+                //TerminateThread(GetCurrentThread(), 0);
+                //CloseHandle(new_node->thread_write);
+
+                return 0;
             }
 
             char clientName[CLIENT_NAME_LEN];
@@ -338,8 +343,9 @@ DWORD WINAPI worker_listener(LPVOID param) {
 
     } while (true);
 
+
     // Shutdown the connection since we're done
-    iResult = shutdown(acceptedSocket, SD_BOTH);
+    //iResult = shutdown(acceptedSocket, SD_BOTH);
 
     //// Check if connection is succesfully shut down.
     //if (iResult == SOCKET_ERROR)
@@ -352,7 +358,7 @@ DWORD WINAPI worker_listener(LPVOID param) {
 
     //Close listen and accepted sockets
     closesocket(listenSocket);
-    closesocket(acceptedSocket);
+    //closesocket(acceptedSocket);
 
     // Deinitialize WSA library
     WSACleanup();

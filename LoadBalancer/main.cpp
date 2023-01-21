@@ -73,7 +73,9 @@ void shut_down_first_free_process() {
             WaitForSingleObject(first_elem->thread_read,INFINITE);
         if (first_elem->thread_write)
             WaitForSingleObject(first_elem->thread_write, INFINITE);
-        free(first_elem);
+        //free(first_elem->msgStruct);
+        //free(first_elem);
+        
         worker_process_count--;
     }
 }
@@ -106,7 +108,7 @@ DWORD WINAPI dispatcher(LPVOID param) {
     while (true) {
         if (WaitForSingleObject(semaphoreEnd, 10) == WAIT_OBJECT_0)
             break;
-        Sleep(300);
+        Sleep(500);
 
         if (!is_queue_empty()){
 
@@ -183,10 +185,11 @@ int main() {
     char input[2];
     gets_s(input,2);
 
-    ReleaseSemaphore(semaphoreEnd, 4, NULL);
 
     //close the process and worker write and read thread
     shut_down_first_free_process();
+    ReleaseSemaphore(semaphoreEnd, 4, NULL);
+
     //wait for listener to finish
     if (hPercentage)
         WaitForSingleObject(hPercentage, INFINITE);
