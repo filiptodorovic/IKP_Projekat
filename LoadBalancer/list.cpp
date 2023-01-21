@@ -192,6 +192,8 @@ void delete_list(list* l) {
 	while (l->head != l->tail) {
 		node* prev = l->head;
 		l->head = l->head->next;
+		if (prev->msgStruct != NULL)
+			free(prev->msgStruct);
 		free(prev);
 	}
 	l->head = NULL;

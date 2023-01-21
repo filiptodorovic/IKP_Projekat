@@ -123,9 +123,13 @@ DWORD WINAPI worker_read(LPVOID param) {
                 printf("[WORKER READ] Worker sent exit. Worker proccess signing off.\n");
                 TerminateThread(new_node->thread_write, 0);
                 TerminateThread(GetCurrentThread(), 0);
+                //CloseHandle(new_node->thread_write);
+
                 delete_node(new_node, busy_workers_list);
                 free(new_node->msgStruct);
+                new_node->msgStruct = NULL;
                 free(new_node);
+                new_node = NULL;
                 //return 0;
             }
 
@@ -150,30 +154,30 @@ DWORD WINAPI worker_read(LPVOID param) {
                 if (iResult != SOCKET_ERROR)	// Check if message is successfully received
                 {
                     printf("[WORKER]: returned to client: %s\n", dataBuffer);
-
-                    //move_specific_node(free_workers_list, busy_workers_list, new_node);
-                    // we will kick out the node from the busy list
-                    delete_node(new_node, busy_workers_list);
-
-                    // and isert it to the end of the free worker list
-                    insert_last_node(new_node, free_workers_list);
-
-                    continue;
                 }
                 else	// There was an error during recv
                 {
 
                     if (WSAGetLastError() == WSAEWOULDBLOCK) {
-                        continue;
+                        //continue;
                     }
                     else {
                         printf("[WORKER]: send to client failed with error: %d\n", WSAGetLastError());
-                        break;
+                        //break;
                     }
 
                 }
             }
+            //move_specific_node(free_workers_list, busy_workers_list, new_node);
+                    // we will kick out the node from the busy list
+            delete_node(new_node, busy_workers_list);
 
+            free(new_node->msgStruct);
+
+            // and isert it to the end of the free worker list
+            insert_last_node(new_node, free_workers_list);
+
+            
             // Send the message to the client...
 
         }
@@ -298,7 +302,7 @@ DWORD WINAPI worker_listener(LPVOID param) {
 
             node* new_node = (node*)malloc(sizeof(node));
             new_node->msgSemaphore = CreateSemaphore(0, 0, 1, NULL);
-            new_node->msgStruct = (messageStruct*)malloc(sizeof(messageStruct));
+            new_node->msgStruct = NULL;
             new_node->acceptedSocket = acceptedSocket;
             new_node->thread_write = CreateThread(NULL, 0, &worker_write, (LPVOID)new_node, 0, &workerWID);
             new_node->thread_read = CreateThread(NULL, 0, &worker_read, (LPVOID)new_node, 0, &workerRID);

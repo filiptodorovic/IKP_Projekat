@@ -115,7 +115,7 @@ int main()
     hClientListener = CreateThread(NULL, 0, &client_read, (LPVOID)connectSocket, 0, &clientID);
     int msgCnt = 0;
 
-    while (msgCnt <= 50) {
+    while (msgCnt <= 20) {
         // Read string from user into outgoing buffer
         //printf("Enter message to send. Enter 'exit' if you want to close connection. ");
         //gets_s(dataBuffer, BUFFER_SIZE);
@@ -142,7 +142,10 @@ int main()
         printf("Message successfully sent. Total bytes: %ld\n", iResult);
         
     }
-        
+    
+    // For demonstration purpose
+    printf("\nPress any key to exit: ");
+    _getch();
    
     // Shutdown the connection since we're done
     iResult = shutdown(connectSocket, SD_BOTH);
@@ -155,11 +158,6 @@ int main()
         WSACleanup();
         return 1;
     }
-
-    // For demonstration purpose
-    printf("\nPress any key to exit: ");
-    _getch();
-
 
     // Close connected socket
     closesocket(connectSocket);

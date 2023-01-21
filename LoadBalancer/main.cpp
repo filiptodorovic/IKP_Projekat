@@ -64,6 +64,9 @@ void shut_down_first_free_process() {
 
     if (first_elem != NULL) {
 
+        if (first_elem->msgStruct == NULL)
+            first_elem->msgStruct = (messageStruct*)malloc(sizeof(messageStruct));
+
         strcpy(first_elem->msgStruct->bufferNoName, "exit");
         ReleaseSemaphore(first_elem->msgSemaphore, 1, NULL);
         if (first_elem->thread_read)
@@ -79,7 +82,7 @@ DWORD WINAPI check_percentage(LPVOID param) {
     while (true) {
         if (WaitForSingleObject(semaphoreEnd, 10) == WAIT_OBJECT_0)
             break;
-        Sleep(3000);
+        Sleep(1000);
         int fullfillness = ((float)get_current_size_queue() / (float)get_capacity_queue()) * 100;
         printf("Queue is at %d%%\n", fullfillness);
         if (fullfillness < 30 && worker_process_count>1) {
@@ -103,7 +106,7 @@ DWORD WINAPI dispatcher(LPVOID param) {
     while (true) {
         if (WaitForSingleObject(semaphoreEnd, 10) == WAIT_OBJECT_0)
             break;
-        Sleep(1000);
+        Sleep(300);
 
         if (!is_queue_empty()){
 
