@@ -104,99 +104,35 @@ int main()
             printf("[WORKER]: load balancer sent: %s.\n", dataBuffer+1);// move to the actual message
             // Send message to server using connected socket
 
-            if (strcmp(dataBuffer+1, "exit") == 0) {
-                while (true) {
-
-                    iResult = send(connectSocket, dataBuffer, (int)strlen(dataBuffer), 0);
-                    if (iResult != SOCKET_ERROR)	// Check if message is successfully received
-                    {
-                        printf("[WORKER]: returned to load balancer %s\n", dataBuffer);
-                        //break;
-
-                        iResult = shutdown(connectSocket, SD_BOTH);
-
-                        // Check if connection is succesfully shut down.
-                        if (iResult == SOCKET_ERROR)
-                        {
-                            printf("[WORKER]: Shutdown failed with error: %d\n", WSAGetLastError());
-                            closesocket(connectSocket);
-                            WSACleanup();
-                            return 1;
-                        }
-
-                        // For demonstration purpose
-                        //printf("\nPress any key to exit: ");
-                        //_getch();
-
-
-                        // Close connected socket
-                        closesocket(connectSocket);
-
-                        // Deinitialize WSA library
-                        WSACleanup();
-
-                        return 0;
-
-
-                    }
-                    else	// There was an error during recv
-                    {
-
-                        if (WSAGetLastError() == WSAEWOULDBLOCK) {
-                            continue;
-                        }
-                        else {
-                            printf("[WORKER]: send failed with error: %d\n", WSAGetLastError());
-                            break;
-                        }
-
-                    }
-                }
-                
-            } //if the :exit is sent 
-                //exit(0);
-                //break;
-
             memset(dataBuffer2, 0, RET_BUFFER_SIZE);
 
-            while (true) {
+            //while (true) {
                 
                 strcpy(dataBuffer2 + 1, successStr);
                 strcpy(dataBuffer2+1 + strlen(dataBuffer2+1), dataBuffer+1);
                 char messageLen = strlen(dataBuffer2 + 1)+1;
                 memset(dataBuffer2, messageLen, 1);//put the message size on the first byte 9+message_len
-
-
-
                 
                 iResult = send(connectSocket, dataBuffer2, (int)strlen(dataBuffer2), 0);
                 if (iResult != SOCKET_ERROR)	// Check if message is successfully received
                 {
                     printf("[WORKER]: returned to load balancer %s\n", dataBuffer2);
-                    break;
+
+                    if(strstr(dataBuffer2, ":exit") != NULL)
+                        break;
                 }
                 else	// There was an error during recv
                 {
 
-                    if (WSAGetLastError() == WSAEWOULDBLOCK) {
-                        continue;
-                    }
-                    else {
-                        printf("[WORKER]: send failed with error: %d\n", WSAGetLastError());
-                        break;
-                    }
-
+                    printf("[WORKER]: send failed with error: %d\n", WSAGetLastError());
+                    closesocket(connectSocket);
+                    WSACleanup();
+                    return 1;
+                    
                 }
-            }
+            //}
 
-            // Check result of send function
-            if (iResult == SOCKET_ERROR)
-            {
-                printf("[WORKER]: send failed with error: %d\n", WSAGetLastError());
-                closesocket(connectSocket);
-                WSACleanup();
-                return 1;
-            }
+            
 
         }
         else	// There was an error during recv

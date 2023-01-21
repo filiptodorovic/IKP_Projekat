@@ -83,6 +83,8 @@ node* delete_first_node(list* l) {
 	EnterCriticalSection(&l->cs);
 
 	if (l->head != NULL) {
+		if (l->head == l->tail)
+			l->tail = NULL;
 		firstNode = l->head;
 		l->head = l->head->next;
 		LeaveCriticalSection(&l->cs);
@@ -190,12 +192,15 @@ void delete_list(list* l) {
 	while (l->head != l->tail) {
 		node* prev = l->head;
 		l->head = l->head->next;
+		if (prev->msgStruct != NULL)
+			free(prev->msgStruct);
 		free(prev);
 	}
 	l->head = NULL;
 	l->tail = NULL;
 	LeaveCriticalSection(&l->cs);
 	DeleteCriticalSection(&l->cs);
+	free(l);
 }
 
 //void put_done_node_to_free(node* done_node, list* busyList, list* freeList) {

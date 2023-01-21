@@ -140,6 +140,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="basic_types.cpp" />
     <ClCompile Include="hash_map.cpp" />
     <ClCompile Include="list.cpp" />
     <ClCompile Include="client_communication.cpp" />
