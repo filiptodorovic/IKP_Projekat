@@ -18,6 +18,32 @@
 #define SERVER_PORT 5059
 #define BUFFER_SIZE 256
 
+bool is_socket_ready(SOCKET socket, bool isRead) {
+    FD_SET set;
+    timeval tv;
+
+    FD_ZERO(&set);
+    FD_SET(socket, &set);
+
+    tv.tv_sec = 0;
+    tv.tv_usec = 50;
+
+    int iResult;
+
+    if (isRead) { //see if socket is ready for READ
+        iResult = select(0, &set, NULL, NULL, &tv);
+    }
+    else {	//see if socket is ready for WRITE
+        iResult = select(0, NULL, &set, NULL, &tv);
+    }
+
+    if (iResult <= 0)
+        return false;
+    else
+        return true;
+}
+
+
 DWORD WINAPI client_read(LPVOID param) {
     SOCKET connectedSocket = (SOCKET)param;
     //check if we got data from client or EXIT signal
@@ -25,6 +51,9 @@ DWORD WINAPI client_read(LPVOID param) {
     char dataBuffer[BUFFER_SIZE];
     do
     {
+        while (!is_socket_ready(connectedSocket, true)) {
+
+        }
 
         int iResult = recv(connectedSocket, dataBuffer, BUFFER_SIZE, 0);
 
@@ -115,11 +144,16 @@ int main()
     hClientListener = CreateThread(NULL, 0, &client_read, (LPVOID)connectSocket, 0, &clientID);
     int msgCnt = 0;
 
-    while (msgCnt <= 50) {
+    while (msgCnt <= 2000) {
         // Read string from user into outgoing buffer
         //printf("Enter message to send. Enter 'exit' if you want to close connection. ");
         //gets_s(dataBuffer, BUFFER_SIZE);
-        Sleep(300);
+
+        Sleep(200);
+
+        while (!is_socket_ready(connectSocket, false)) {
+
+        }
 
         sprintf(dataBuffer, "Hello LB!!!");
 
