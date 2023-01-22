@@ -116,7 +116,6 @@ DWORD WINAPI worker_read(LPVOID param) {
             while (iResult != msgLen) {
 
                 iResult2 = recv(acceptedSocket, messagePart, BUFFER_SIZE, 0);
-                //strcpy(dataBuffer + iResult, dataBuffer2);
                 memcpy(dataBuffer + strlen(dataBuffer + 1) + 1, messagePart, (int)strlen(messagePart));
 
                 iResult += iResult2;
@@ -124,7 +123,9 @@ DWORD WINAPI worker_read(LPVOID param) {
 
             dataBuffer[iResult] = '\0';
 
+#ifdef DEBUG 
             printf("[WORKER READ] Worker sent: %s.\n", dataBuffer);
+#endif
             if (strstr(dataBuffer+1, ":exit") != NULL) {
                 printf("[WORKER READ] Worker sent exit. Worker proccess signing off.\n");
 
@@ -160,7 +161,9 @@ DWORD WINAPI worker_read(LPVOID param) {
 
                 if (iResult != SOCKET_ERROR)	// Check if message is successfully received
                 {
-                    //printf("[WORKER]: returned to client: %s\n", dataBuffer);
+#ifdef DEBUG
+                    printf("[WORKER]: returned to client: %s\n", dataBuffer);
+#endif
                 }
                 else	// There was an error during recv
                 {

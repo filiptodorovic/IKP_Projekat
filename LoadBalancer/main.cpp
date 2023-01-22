@@ -98,7 +98,6 @@ DWORD WINAPI check_percentage(LPVOID param) {
         }
         else if (fullfillness > 70) {
             // open new worker processes
-            //CreateProcess();
             create_new_worker_process();
         }
     }
@@ -112,7 +111,7 @@ DWORD WINAPI dispatcher(LPVOID param) {
     while (true) {
         if (WaitForSingleObject(semaphoreEnd, 10) == WAIT_OBJECT_0)
             break;
-        Sleep(500);
+        Sleep(50);
 
         if (!is_queue_empty()){
 
@@ -156,7 +155,7 @@ int main() {
     DWORD dispatcherID;
 
     init_hash_table();
-    create_queue(20);
+    create_queue(50);
     init_list(&free_workers_list);
     init_list(&busy_workers_list);
     semaphoreEnd= CreateSemaphore(0, 0, 4, NULL);

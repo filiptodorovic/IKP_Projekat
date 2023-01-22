@@ -144,12 +144,12 @@ int main()
     hClientListener = CreateThread(NULL, 0, &client_read, (LPVOID)connectSocket, 0, &clientID);
     int msgCnt = 0;
 
-    while (msgCnt <= 50) {
+    while (msgCnt <= 2000) {
         // Read string from user into outgoing buffer
         //printf("Enter message to send. Enter 'exit' if you want to close connection. ");
         //gets_s(dataBuffer, BUFFER_SIZE);
 
-        Sleep(360);
+        Sleep(200);
 
         while (!is_socket_ready(connectSocket, false)) {
 
