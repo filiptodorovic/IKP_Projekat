@@ -37,8 +37,8 @@ void create_new_worker_process() {
     memset(&new_worker->process_info, 0, sizeof(PROCESS_INFORMATION));
     TCHAR buff[100];
     GetCurrentDirectory(100, buff);
-    wcscat(buff, L"\\..\\Debug\\Worker.exe");
-    //wcscat(buff, L"\\..\\x64\\Debug\\Worker.exe");
+    //wcscat(buff, L"\\..\\Debug\\Worker.exe");
+    wcscat(buff, L"\\..\\x64\\Debug\\Worker.exe");
     TCHAR cmd[] = L"Worker.exe";
     if (!CreateProcess(
         buff,          // LPCTSTR lpApplicationName

@@ -121,18 +121,6 @@ void move_first_node(list* to, list* from) {
 	LeaveCriticalSection(&from->cs);
 }
 
-/*
-node* find_node(list* lst, SOCKET sock) {
-	node* current = lst->head;
-	while (current != NULL) {
-		if (current->acceptedSocket == sock) {
-			return current;
-		}
-		current = current->next;
-	}
-	return NULL;
-}*/
-
 node* find_previous_node(list* lst, node* target) {
 	node* current = NULL;
 	EnterCriticalSection(&lst->cs);
@@ -202,18 +190,3 @@ void delete_list(list* l) {
 	DeleteCriticalSection(&l->cs);
 	free(l);
 }
-
-//void put_done_node_to_free(node* done_node, list* busyList, list* freeList) {
-//	node* tmp = busyList->head;
-//	while (tmp->next != NULL && tmp!=done_node) {
-//		tmp = tmp->next;
-//	}
-//	//we should have found the node
-//	if (tmp == NULL) {
-//		return;
-//	}
-//
-//	delete_node(done_node, busyList);
-//	insert_last_node()
-//
-//}

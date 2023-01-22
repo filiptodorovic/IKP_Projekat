@@ -60,8 +60,6 @@ DWORD WINAPI client_read_write(LPVOID param) {
                 if (strcmp(dataBuffer, "exit") == 0) {
                     // Connection was closed successfully
                     printf("Connection with client %d closed.\n", client_num);
-                    closesocket(acceptedSocket);
-                    //CloseHandle(client_read_write);
                     break;
                 }
 
@@ -72,27 +70,12 @@ DWORD WINAPI client_read_write(LPVOID param) {
                 strcpy(newMessageStruct->clientName, clientName);
                 strcpy(newMessageStruct->bufferNoName, dataBuffer);
 
-
-
-                /*memset(toEnqueue, 0, BUFFER_SIZE + CLIENT_NAME_LEN);
-                memcpy(toEnqueue, clientName, CLIENT_NAME_LEN);
-                memcpy((toEnqueue + CLIENT_NAME_LEN), dataBuffer, strlen(dataBuffer) + 1);*/
-
-                /*
-                memset(toEnqueue, 0, sizeof(toEnqueue));
-                memcpy(toEnqueue, clientName, strlen(clientName));
-                memcpy(toEnqueue + strlen(clientName), ": ", 2);
-                memcpy(toEnqueue + strlen(clientName) + 2, dataBuffer, strlen(dataBuffer)+1);
-                */
-
                 enqueue(newMessageStruct);
 
             }
             else if (iResult == 0)	// Check if shutdown command is received
             {
                 printf("Connection with client closed.\n");
-                closesocket(acceptedSocket);
-                //CloseHandle(client_read_write);
                 break;
             }
         }
@@ -104,27 +87,25 @@ DWORD WINAPI client_read_write(LPVOID param) {
             }
             else {
                 printf("[WORKER READ]: recv failed with error: %d\n", WSAGetLastError());
-                //TerminateThread(GetCurrentThread(), 0);
                 break;
             }
 
         }
 
-        
-
-        //checking if client is receiving messages ---> sending notifications to client is task for Worker thread
-        /*iResult = send(acceptedSocket, "hello client!", (int)strlen("hello client!"), 0);
-        if (iResult == SOCKET_ERROR)
-        {
-            printf("send failed with error: %d\n", WSAGetLastError());
-            //closesocket(connectSocket);
-            WSACleanup();
-            return 1;
-        }*/
-
     } while (true);
 
-    //CloseHandle(client_read_write);
+    int iResult = shutdown(acceptedSocket, SD_BOTH);
+
+     //// Check if connection is succesfully shut down.
+     if (iResult == SOCKET_ERROR)
+     {
+         printf("shutdown failed with error: %d\n", WSAGetLastError());
+         closesocket(acceptedSocket);
+         WSACleanup();
+         return 1;
+     }
+
+     closesocket(acceptedSocket);
 
     return 0;
 }
@@ -237,7 +218,6 @@ DWORD WINAPI client_listener(LPVOID param) {
             newCli->acceptedSocket = acceptedSocket;
 
             insert_client(newCli);
-            //print_table();
         }
         else
         {
@@ -256,21 +236,8 @@ DWORD WINAPI client_listener(LPVOID param) {
 
     } while (true);
 
-    // Shutdown the connection since we're done
-    iResult = shutdown(acceptedSocket, SD_BOTH);
-
-    //// Check if connection is succesfully shut down.
-    //if (iResult == SOCKET_ERROR)
-    //{
-    //    printf("shutdown failed with error: %d\n", WSAGetLastError());
-    //    closesocket(acceptedSocket);
-    //    WSACleanup();
-    //    return 1;
-    //}
-
     //Close listen and accepted sockets
     closesocket(listenSocket);
-    closesocket(acceptedSocket);
 
     // Deinitialize WSA library
     WSACleanup();
