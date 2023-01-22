@@ -45,7 +45,9 @@ DWORD WINAPI client_read_write(LPVOID param) {
     //OR if we got a message from worker
     do
     {
-        
+        while (!is_socket_ready(acceptedSocket, true)) {
+
+        }
         // Receive data until the client shuts down the connection
         int iResult = recv(acceptedSocket, dataBuffer, BUFFER_SIZE, 0);
 

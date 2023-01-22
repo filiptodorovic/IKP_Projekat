@@ -56,6 +56,10 @@ DWORD WINAPI worker_write(LPVOID param) {
         memset(messageBuff, msgLen, 1); // first byte is the length of the message
         strcpy(messageBuff + 1, message);
 
+        while (!is_socket_ready(acceptedSocket, false)) {
+
+        }
+
         iResult = send(acceptedSocket, messageBuff, strlen(messageBuff+1)+1, 0); // [messageLen][ClientName][delimiter(:)][message]
 
         if (iResult != SOCKET_ERROR)
@@ -98,6 +102,9 @@ DWORD WINAPI worker_read(LPVOID param) {
     //OR if we got a message from worker
     do
     {
+        while (!is_socket_ready(acceptedSocket, true)) {
+
+        }
 
         int iResult = recv(acceptedSocket, dataBuffer, BUFFER_SIZE, 0);
         int msgLen = (int)dataBuffer[0];
@@ -151,6 +158,10 @@ DWORD WINAPI worker_read(LPVOID param) {
 
             client_thread* foundClient = lookup_client(clientName);
             if (foundClient) {
+
+                while (!is_socket_ready(acceptedSocket, false)) {
+
+                }
 
                 iResult = send(foundClient->acceptedSocket, bufferForClient, (int)strlen(bufferForClient), 0);
                 memset(bufferForClient, 0, BUFFER_SIZE);
