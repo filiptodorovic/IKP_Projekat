@@ -74,7 +74,7 @@ void shut_down_first_free_process() {
         if (first_elem->thread_write)
             WaitForSingleObject(first_elem->thread_write, INFINITE);
         //free(first_elem->msgStruct);
-        //free(first_elem);
+        free(first_elem);
         
         worker_process_count--;
     }

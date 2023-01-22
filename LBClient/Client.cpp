@@ -149,7 +149,7 @@ int main()
         //printf("Enter message to send. Enter 'exit' if you want to close connection. ");
         //gets_s(dataBuffer, BUFFER_SIZE);
 
-        Sleep(300);
+        Sleep(360);
 
         while (!is_socket_ready(connectSocket, false)) {
 

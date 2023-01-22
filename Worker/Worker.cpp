@@ -150,7 +150,7 @@ int main()
                 iResult = send(connectSocket, dataBuffer2, (int)strlen(dataBuffer2), 0);
                 if (iResult != SOCKET_ERROR)	// Check if message is successfully received
                 {
-                    printf("[WORKER]: returned to load balancer %s\n", dataBuffer2);
+                    //printf("[WORKER]: returned to load balancer %s\n", dataBuffer2);
 
                     if(strstr(dataBuffer2, ":exit") != NULL)
                         break;
@@ -198,7 +198,7 @@ int main()
 
     // For demonstration purpose
     printf("\nPress any key to exit: ");
-    _getch();
+    //_getch();
 
 
     // Close connected socket

@@ -64,7 +64,7 @@ DWORD WINAPI worker_write(LPVOID param) {
 
         if (iResult != SOCKET_ERROR)
         {
-            printf("[WORKER WRITE]: sent: %s.\n", messageBuff);
+            //printf("[WORKER WRITE]: sent: %s.\n", messageBuff);
             if (strstr(msg->bufferNoName, "exit") != NULL) {
 
                 printf("[WORKER WRITE]: Worker process signing off.\n");
@@ -169,7 +169,7 @@ DWORD WINAPI worker_read(LPVOID param) {
 
                 if (iResult != SOCKET_ERROR)	// Check if message is successfully received
                 {
-                    printf("[WORKER]: returned to client: %s\n", dataBuffer);
+                    //printf("[WORKER]: returned to client: %s\n", dataBuffer);
                 }
                 else	// There was an error during recv
                 {
