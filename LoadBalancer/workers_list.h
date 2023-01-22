@@ -7,13 +7,13 @@
 
 typedef struct worker_node {
 
-	DWORD processId;
+	STARTUPINFO startup_info;
+	PROCESS_INFORMATION process_info;
 	struct worker_node* next;
 
 } worker_node;
 
-struct worker_node* head = NULL;
+extern worker_node* worker_process_head;
 
-void insert_last(DWORD id);
-void shutdown_all();
-void delete_list();
+void insert_worker_node(worker_node* node);
+void delete_worker_list_and_shutdown();

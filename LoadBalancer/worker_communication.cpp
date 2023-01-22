@@ -20,6 +20,7 @@
 #define BUFFER_SIZE 256
 #define CLIENT_NAME_LEN 10 
 #define SERVER_PORT 6069
+//#define DEBUG
 
 static int worker_count = 0;
 

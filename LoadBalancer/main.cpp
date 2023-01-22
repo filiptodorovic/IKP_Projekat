@@ -6,6 +6,7 @@
 #include "worker_communication.h"
 #include "list.h"
 #include "testing.h"
+#include "workers_list.h"
 
 #define WORKER_IP_ADDRESS "127.0.0.1"
 #define WORKER_PORT 6069
@@ -18,24 +19,26 @@ list* busy_workers_list;
 list* free_workers_list;
 queue* q;
 HANDLE semaphoreEnd;
+worker_node* worker_process_head = NULL;
+
 static unsigned int worker_process_count = 0;
 
-STARTUPINFO startup_info;
-PROCESS_INFORMATION process_info;
+
 
 
 void create_new_worker_process() {
+    worker_node* new_worker = (worker_node*)malloc(sizeof(worker_node));
 
-    memset(&startup_info, 0, sizeof(STARTUPINFO));
-    startup_info.cb = sizeof(STARTUPINFO);
-    startup_info.dwFlags = STARTF_USESHOWWINDOW;
-    startup_info.wShowWindow = SW_SHOW;
+    memset(&new_worker->startup_info, 0, sizeof(STARTUPINFO));
+    new_worker->startup_info.cb = sizeof(STARTUPINFO);
+    new_worker->startup_info.dwFlags = STARTF_USESHOWWINDOW;
+    new_worker->startup_info.wShowWindow = SW_SHOW;
 
-    memset(&process_info, 0, sizeof(PROCESS_INFORMATION));
+    memset(&new_worker->process_info, 0, sizeof(PROCESS_INFORMATION));
     TCHAR buff[100];
     GetCurrentDirectory(100, buff);
-    //wcscat(buff, L"\\..\\Debug\\Worker.exe");
-    wcscat(buff, L"\\..\\x64\\Debug\\Worker.exe");
+    wcscat(buff, L"\\..\\Debug\\Worker.exe");
+    //wcscat(buff, L"\\..\\x64\\Debug\\Worker.exe");
     TCHAR cmd[] = L"Worker.exe";
     if (!CreateProcess(
         buff,          // LPCTSTR lpApplicationName
@@ -46,14 +49,15 @@ void create_new_worker_process() {
         NORMAL_PRIORITY_CLASS,    // DWORD dwCreationFlags
         NULL,                // LPVOID lpEnvironment
         NULL,                // LPCTSTR lpCurrentDirectory
-        &startup_info,       // LPSTARTUPINFO lpStartupInfo
-        &process_info        // LPPROCESS_INFORMATION lpProcessInformation
+        &new_worker->startup_info,       // LPSTARTUPINFO lpStartupInfo
+        &new_worker->process_info        // LPPROCESS_INFORMATION lpProcessInformation
     )) {
 
         printf("CreateProcess failed (%d).\n", GetLastError());
     }
 
     worker_process_count++;
+    insert_worker_node(new_worker);
     ShowWindow(0, SW_SHOW);
 }
 
@@ -112,11 +116,7 @@ DWORD WINAPI dispatcher(LPVOID param) {
 
         if (!is_queue_empty()){
 
-            //EnterCriticalSection(&globalCs);
-
             node* first = free_workers_list->head;
-
-            //EnterCriticalSection(&free_workers_list->cs);
 
             if (free_workers_list->head != NULL)
             {
@@ -138,20 +138,10 @@ DWORD WINAPI dispatcher(LPVOID param) {
                 print_list(busy_workers_list);
 #endif
             }
-
-            //LeaveCriticalSection(&free_workers_list->cs);
-            //LeaveCriticalSection(&globalCs);
         }
     }
     return 0;
 }
-
-
-
-//WaitForSingleObject(process_info.hProcess, INFINITE);
-//CloseHandle(process_info.hProcess);
-//CloseHandle(process_info.hThread);
-
 
 int main() {
     int a = 0;
@@ -170,8 +160,6 @@ int main() {
     init_list(&free_workers_list);
     init_list(&busy_workers_list);
     semaphoreEnd= CreateSemaphore(0, 0, 4, NULL);
-
-    //InitializeCriticalSection(&globalCs);
 
 
     hPercentage = CreateThread(NULL, 0, &check_percentage, (LPVOID)0, 0, &percentageID);
@@ -204,8 +192,7 @@ int main() {
     delete_list(free_workers_list);
     delete_list(busy_workers_list);
     delete_queue();
-    
-    //DeleteCriticalSection(&globalCs);
+    delete_worker_list_and_shutdown();
 
 	return 0;
 }

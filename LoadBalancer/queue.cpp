@@ -5,7 +5,7 @@
 HANDLE hSemaporeQueueEmpty;
 HANDLE hSemaporeQueueFull;
 
-#define DEBUG
+//#define DEBUG
 #define BUFFER_SIZE 256
 
 

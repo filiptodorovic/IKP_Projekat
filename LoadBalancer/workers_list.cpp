@@ -1,37 +1,25 @@
 #include "workers_list.h"
 
-void insert_last(DWORD id) {
-    struct worker_node* new_node = (struct worker_node*)malloc(sizeof(struct worker_node));
-    new_node->processId = id;
-    new_node->next = NULL;
-
-    if (head == NULL) {
-        head = new_node;
-        return;
+void insert_worker_node(worker_node* node) {
+    if (worker_process_head == NULL) {
+        node->next = NULL;
+        worker_process_head = node;
     }
-
-    struct worker_node* temp = head;
-    while (temp->next != NULL) {
-        temp = temp->next;
-    }
-
-    temp->next = new_node;
-}
-
-void shutdown_all() {
-    struct worker_node* temp = head;
-    while (temp != NULL) {
-        
-        temp = temp->next;
+    else {
+        node->next = worker_process_head;
+        worker_process_head = node;
     }
 }
 
-void delete_list() {
-    struct worker_node* temp = head;
-    while (temp != NULL) {
-        struct worker_node* next = temp->next;
-        free(temp);
-        temp = next;
+void delete_worker_list_and_shutdown() {
+    worker_node* tmp = worker_process_head;
+    while (tmp!=NULL) {
+        worker_node* prev = tmp;
+        WaitForSingleObject(tmp->process_info.hProcess, 100);
+        CloseHandle(tmp->process_info.hProcess);
+        CloseHandle(tmp->process_info.hThread);
+        tmp = tmp->next;
+        free(prev);
     }
-    head = NULL;
+
 }

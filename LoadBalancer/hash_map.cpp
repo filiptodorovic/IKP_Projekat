@@ -106,6 +106,8 @@ void delete_hashtable() {
 		client_thread* head = hash_table_clt[i];
 		while (head != NULL) {
 			client_thread* prev = head;
+			if (head->clientThread)
+				WaitForSingleObject(head->clientThread, INFINITE);
 			head = head->next;
 			free(prev);
 		}
